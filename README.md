@@ -1,4 +1,4 @@
-# hyperspectaculR
+# hyperspectaculR <img src="man/figures/logo.svg" align="right" height="180" alt="hyperspectaculR logo" />
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21889974.svg)](https://doi.org/10.5281/zenodo.21889974)
 

@@ -16,3 +16,5 @@
 ^showcase$
 ^CITATION\.cff$
 ^\.zenodo\.json$
+^hyperspectaculR_icon\.svg$
+^figure$

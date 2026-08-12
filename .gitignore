@@ -19,3 +19,4 @@ Thumbs.db
 
 # Clinical renders are for local review only and must never be committed.
 showcase/clinical/
+figure/
