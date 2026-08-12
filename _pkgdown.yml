@@ -1,0 +1,48 @@
+url: https://cttir.github.io/hyperspectaculR/
+
+template:
+  package: themakR
+
+development:
+  mode: auto
+
+home:
+  title: hyperspectaculR
+  description: >
+    Publication-grade artistic visualisation of hyperspectral imagery, built
+    on the hsi_cube class from hyperspectR.
+
+reference:
+  - title: Compositions
+    desc: >
+      Each of these needs the spectral axis: none could be produced from a
+      single wavelength. Every one returns a ggplot and captions the contrast
+      stretch it applied.
+    contents:
+      - hsa_mandala
+      - hsa_spectral_flux
+      - hsa_fusion
+
+  - title: Appearance
+    desc: >
+      A theme for image panels, and colour ramps restricted to those that are
+      monotonic in lightness so ordering survives greyscale printing.
+    contents:
+      - hsa_theme
+      - hsa_palette
+
+  - title: Package
+    contents:
+      - hsa_demo_cube
+      - hyperspectaculR-package
+
+articles:
+  - title: Getting started
+    navbar: ~
+    contents:
+      - hyperspectaculR
+
+# navbar, footer and the home sidebar are inherited from themakR via
+# `template: package: themakR`. Do NOT re-declare `navbar:` here -- overriding
+# its structure drops the `lightswitch` component and disables the dark/light
+# toggle.
