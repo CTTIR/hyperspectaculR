@@ -22,7 +22,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="../index.html">hyperspectaculR</a>
+    <a class="navbar-brand me-2" href="../index.html"><img src="../logo.svg" alt="" class="themakr-navbar-logo">hyperspectaculR</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
 
@@ -38,6 +38,7 @@
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
 <li class="nav-item"><a class="external-link nav-link" href="https://github.com/CTTIR/hyperspectaculR/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
@@ -59,8 +60,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Making hyperspectral figures worth looking at</h1>
+      <img src="../logo.svg" class="logo" alt=""><h1>Making hyperspectral figures worth looking at</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/CTTIR/hyperspectaculR/blob/main/vignettes/hyperspectaculR.Rmd" class="external-link"><code>vignettes/hyperspectaculR.Rmd</code></a></small>
@@ -88,7 +88,39 @@ package, so the vignette builds without any recorded data.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">cube</span><span class="op">$</span><span class="va">wavelengths</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 500 615</span></span></code></pre></div>
 <div class="section level2">
-<h2 id="three-compositions">Three compositions<a class="anchor" aria-label="anchor" href="#three-compositions"></a>
+<h2 id="start-with-the-distribution">Start with the distribution<a class="anchor" aria-label="anchor" href="#start-with-the-distribution"></a>
+</h2>
+<p>Before any of the images, it is worth looking at what is actually in
+the cube. <code><a href="../reference/hsa_spectral_density.html">hsa_spectral_density()</a></code> bins every pixel’s
+reflectance against wavelength and draws the joint distribution, with
+the mean spectrum and a 5–95% envelope threaded through it.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/hsa_spectral_density.html">hsa_spectral_density</a></span><span class="op">(</span><span class="va">cube</span><span class="op">)</span></span></code></pre></div>
+<p><img src="hyperspectaculR_files/figure-html/density-1.png" class="r-plt" alt="" width="660" style="display: block; margin: auto;"></p>
+<p>This is the only composition here that is not an image, and it is the
+one the others should be read against. Every image below applies a
+contrast stretch; this shows the distribution that stretch is applied
+to. Passing <code>show_limits = TRUE</code> draws those limits straight
+onto it, so you can see whether they sit sensibly inside the data or are
+cutting into it.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/hsa_spectral_density.html">hsa_spectral_density</a></span><span class="op">(</span><span class="va">cube</span>, show_limits <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p><img src="hyperspectaculR_files/figure-html/density-limits-1.png" class="r-plt" alt="" width="660" style="display: block; margin: auto;"></p>
+<p>Two details matter for trusting the figure. Values outside the range
+are <strong>dropped, not clipped</strong> — clipping would pile their
+mass into the end bins and manufacture bright edges at the extremes,
+which is exactly the artefact this plot exists to expose. And counts are
+shown on a <code>log1p</code> scale by default, because reflectance
+histograms are heavy-tailed and a linear scale shows only the mode; the
+colourbar labels are back-transformed, so the legend still reads true
+counts.</p>
+<p>On real recordings this is often where problems surface first. A
+capture whose mass piles onto a few discrete reflectance values is
+quantised — too few photons divided by a white reference — and no amount
+of careful rendering downstream will put information back.</p>
+</div>
+<div class="section level2">
+<h2 id="four-compositions">Four compositions<a class="anchor" aria-label="anchor" href="#four-compositions"></a>
 </h2>
 <div class="section level3">
 <h3 id="a-radial-spectral-sweep">A radial spectral sweep<a class="anchor" aria-label="anchor" href="#a-radial-spectral-sweep"></a>
@@ -97,17 +129,17 @@ package, so the vignette builds without any recorded data.</p>
 different wavelength: the innermost ring is the shortest wavelength, the
 outermost the longest. One image, sweeping the whole spectral axis
 outward from a centre.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/hsa_mandala.html">hsa_mandala</a></span><span class="op">(</span><span class="va">cube</span><span class="op">)</span></span></code></pre></div>
 <p><img src="hyperspectaculR_files/figure-html/mandala-1.png" class="r-plt" alt="" width="660" style="display: block; margin: auto;"></p>
 <p>Fewer rings give bolder banding; more rings sample the spectrum
 finely enough that the transition reads as continuous.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/hsa_mandala.html">hsa_mandala</a></span><span class="op">(</span><span class="va">cube</span>, n_rings <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span></code></pre></div>
 <p><img src="hyperspectaculR_files/figure-html/mandala-rings-1.png" class="r-plt" alt="" width="660" style="display: block; margin: auto;"></p>
 <p>The centre is yours to choose, which matters when the subject is not
 in the middle of the frame.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/hsa_mandala.html">hsa_mandala</a></span><span class="op">(</span><span class="va">cube</span>, centre <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">15</span><span class="op">)</span>, n_rings <span class="op">=</span> <span class="fl">24</span><span class="op">)</span></span></code></pre></div>
 <p><img src="hyperspectaculR_files/figure-html/mandala-centre-1.png" class="r-plt" alt="" width="660" style="display: block; margin: auto;"></p>
 </div>
@@ -117,7 +149,7 @@ in the middle of the frame.</p>
 <p><code><a href="../reference/hsa_spectral_flux.html">hsa_spectral_flux()</a></code> sums the absolute change between
 consecutive bands. Flat spectra go dark; pixels whose reflectance swings
 across the spectrum light up.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/hsa_spectral_flux.html">hsa_spectral_flux</a></span><span class="op">(</span><span class="va">cube</span><span class="op">)</span></span></code></pre></div>
 <p><img src="hyperspectaculR_files/figure-html/flux-1.png" class="r-plt" alt="" width="660" style="display: block; margin: auto;"></p>
 <p>This is not a variance map. Variance is blind to the order of the
@@ -133,12 +165,12 @@ groups of bands rather than picking three wavelengths. Averaging
 suppresses per-band sensor noise, so the result is smoother and more
 saturated than a three-band composite, while remaining a simple and
 disclosable operation.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/hsa_fusion.html">hsa_fusion</a></span><span class="op">(</span><span class="va">cube</span><span class="op">)</span></span></code></pre></div>
 <p><img src="hyperspectaculR_files/figure-html/fusion-1.png" class="r-plt" alt="" width="660" style="display: block; margin: auto;"></p>
 <p>Groups can be given as wavelengths when that is how you think about
 the subject:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">wl</span> <span class="op">&lt;-</span> <span class="va">cube</span><span class="op">$</span><span class="va">wavelengths</span></span>
 <span><span class="fu"><a href="../reference/hsa_fusion.html">hsa_fusion</a></span><span class="op">(</span><span class="va">cube</span>, red <span class="op">=</span> <span class="va">wl</span><span class="op">[</span><span class="fl">22</span><span class="op">]</span>, green <span class="op">=</span> <span class="va">wl</span><span class="op">[</span><span class="fl">12</span><span class="op">]</span>, blue <span class="op">=</span> <span class="va">wl</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, by <span class="op">=</span> <span class="st">"wavelength"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="hyperspectaculR_files/figure-html/fusion-wl-1.png" class="r-plt" alt="" width="660" style="display: block; margin: auto;"></p>
@@ -147,17 +179,20 @@ the subject:</p>
 <div class="section level2">
 <h2 id="saying-what-you-did-to-the-image">Saying what you did to the image<a class="anchor" aria-label="anchor" href="#saying-what-you-did-to-the-image"></a>
 </h2>
-<p>Contrast stretching is what makes hyperspectral data legible on a
-screen. It is also the easiest way to make a figure imply something the
+<p>The density plot above shows the distribution; the images apply a
+stretch to it. That stretch is what makes hyperspectral data legible on
+a screen, and also the easiest way to make a figure imply something the
 data does not. So every function here captions the stretch it applied
 and the limits it used:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/hsa_mandala.html">hsa_mandala</a></span><span class="op">(</span><span class="va">cube</span><span class="op">)</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="va">caption</span></span>
 <span><span class="co">#&gt; [1] "Linear stretch between the 2% and 98% percentiles [0.1694, 0.4918]"</span></span>
 <span><span class="fu"><a href="../reference/hsa_spectral_flux.html">hsa_spectral_flux</a></span><span class="op">(</span><span class="va">cube</span>, stretch <span class="op">=</span> <span class="st">"range"</span><span class="op">)</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="va">caption</span></span>
 <span><span class="co">#&gt; [1] "Linear stretch over [0.006715, 0.02887]"</span></span>
 <span><span class="fu"><a href="../reference/hsa_mandala.html">hsa_mandala</a></span><span class="op">(</span><span class="va">cube</span>, stretch <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="va">caption</span></span>
-<span><span class="co">#&gt; [1] "No contrast stretch applied"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "No contrast stretch applied"</span></span>
+<span><span class="fu"><a href="../reference/hsa_spectral_density.html">hsa_spectral_density</a></span><span class="op">(</span><span class="va">cube</span><span class="op">)</span><span class="op">$</span><span class="va">labels</span><span class="op">$</span><span class="va">caption</span></span>
+<span><span class="co">#&gt; [1] "128 bins over [0.1075, 0.5753]; values outside dropped, not clipped; log1p counts. White line: mean; dashed: 5-95%"</span></span></code></pre></div>
 <p>That caption travels with the figure. If a reviewer asks what was
 done to the image, the answer is printed underneath it.</p>
 </div>
@@ -167,12 +202,12 @@ done to the image, the answer is printed underneath it.</p>
 <p><code><a href="../reference/hsa_palette.html">hsa_palette()</a></code> offers only ramps that are monotonic in
 lightness, so ordering is preserved in greyscale printing and remains
 legible to colourblind readers.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/hsa_palette.html">hsa_palette</a></span><span class="op">(</span><span class="st">"magma"</span>, n <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "#000004FF" "#3B0F70FF" "#8C2981FF" "#DE4968FF" "#FE9F6DFF" "#FCFDBFFF"</span></span></code></pre></div>
 <p>Rainbow-like ramps are excluded on purpose, with one exception kept
 for screen-only use — and it tells you:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/invisible.html" class="external-link">invisible</a></span><span class="op">(</span><span class="fu"><a href="../reference/hsa_palette.html">hsa_palette</a></span><span class="op">(</span><span class="st">"turbo"</span>, n <span class="op">=</span> <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: <span style="color: #0000BB;">"turbo"</span> is not monotonic in lightness.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> It reads well on screen but loses ordering in greyscale; prefer <span style="color: #0000BB;">"viridis"</span> or</span></span>
@@ -185,14 +220,14 @@ for screen-only use — and it tells you:</p>
 <code>patchwork</code>, re-theme, and export through
 <code><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave()</a></code> at whatever size and resolution a journal wants.
 Nothing writes a file as a side effect.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com" class="external-link">patchwork</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/hsa_fusion.html">hsa_fusion</a></span><span class="op">(</span><span class="va">cube</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="../reference/hsa_spectral_flux.html">hsa_spectral_flux</a></span><span class="op">(</span><span class="va">cube</span><span class="op">)</span></span></code></pre></div>
 <p><img src="hyperspectaculR_files/figure-html/patchwork-1.png" class="r-plt" alt="" width="770" style="display: block; margin: auto;"></p>
 <p>For print, export as vector where the composition allows it, or at
 300–600 dpi where it does not — these are raster images, so a
 high-resolution PNG or TIFF is usually the honest choice:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"figure-1.png"</span>, <span class="fu"><a href="../reference/hsa_mandala.html">hsa_mandala</a></span><span class="op">(</span><span class="va">cube</span><span class="op">)</span>,</span>
 <span>                width <span class="op">=</span> <span class="fl">180</span>, height <span class="op">=</span> <span class="fl">130</span>, units <span class="op">=</span> <span class="st">"mm"</span>, dpi <span class="op">=</span> <span class="fl">600</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -201,7 +236,7 @@ high-resolution PNG or TIFF is usually the honest choice:</p>
 </h2>
 <p>With <code>hyperspectR</code> installed, the same functions take real
 cubes from either supported instrument:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/cttir/hyperspectR" class="external-link">hyperspectR</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># TIVITA, via tivis.r -- no vendor SDK needed</span></span>
@@ -213,6 +248,11 @@ cubes from either supported instrument:</p>
 <span><span class="fu"><a href="../reference/hsa_fusion.html">hsa_fusion</a></span><span class="op">(</span><span class="va">cube</span>, red <span class="op">=</span> <span class="fl">850</span>, green <span class="op">=</span> <span class="fl">650</span>, blue <span class="op">=</span> <span class="fl">550</span>, by <span class="op">=</span> <span class="st">"wavelength"</span><span class="op">)</span></span></code></pre></div>
 <p>Both readers return the same <code>hsi_cube</code>, so nothing here
 changes between instruments — only the wavelengths in the caption.</p>
+<p>A reasonable habit with an unfamiliar recording is to run
+<code>hsa_spectral_density(cube, show_limits = TRUE)</code> first. If
+the distribution is banded, truncated, or piled against one end, that is
+worth knowing before choosing how to render it — and worth saying in the
+figure caption either way.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

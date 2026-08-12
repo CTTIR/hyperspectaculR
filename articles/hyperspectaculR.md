@@ -25,7 +25,50 @@ range(cube$wavelengths)
 #> [1] 500 615
 ```
 
-## Three compositions
+## Start with the distribution
+
+Before any of the images, it is worth looking at what is actually in the
+cube.
+[`hsa_spectral_density()`](https://cttir.github.io/hyperspectaculR/reference/hsa_spectral_density.md)
+bins every pixel’s reflectance against wavelength and draws the joint
+distribution, with the mean spectrum and a 5–95% envelope threaded
+through it.
+
+``` r
+
+hsa_spectral_density(cube)
+```
+
+![](hyperspectaculR_files/figure-html/density-1.png)
+
+This is the only composition here that is not an image, and it is the
+one the others should be read against. Every image below applies a
+contrast stretch; this shows the distribution that stretch is applied
+to. Passing `show_limits = TRUE` draws those limits straight onto it, so
+you can see whether they sit sensibly inside the data or are cutting
+into it.
+
+``` r
+
+hsa_spectral_density(cube, show_limits = TRUE)
+```
+
+![](hyperspectaculR_files/figure-html/density-limits-1.png)
+
+Two details matter for trusting the figure. Values outside the range are
+**dropped, not clipped** — clipping would pile their mass into the end
+bins and manufacture bright edges at the extremes, which is exactly the
+artefact this plot exists to expose. And counts are shown on a `log1p`
+scale by default, because reflectance histograms are heavy-tailed and a
+linear scale shows only the mode; the colourbar labels are
+back-transformed, so the legend still reads true counts.
+
+On real recordings this is often where problems surface first. A capture
+whose mass piles onto a few discrete reflectance values is quantised —
+too few photons divided by a white reference — and no amount of careful
+rendering downstream will put information back.
+
+## Four compositions
 
 ### A radial spectral sweep
 
@@ -107,8 +150,9 @@ hsa_fusion(cube, red = wl[22], green = wl[12], blue = wl[2], by = "wavelength")
 
 ## Saying what you did to the image
 
-Contrast stretching is what makes hyperspectral data legible on a
-screen. It is also the easiest way to make a figure imply something the
+The density plot above shows the distribution; the images apply a
+stretch to it. That stretch is what makes hyperspectral data legible on
+a screen, and also the easiest way to make a figure imply something the
 data does not. So every function here captions the stretch it applied
 and the limits it used:
 
@@ -120,6 +164,8 @@ hsa_spectral_flux(cube, stretch = "range")$labels$caption
 #> [1] "Linear stretch over [0.006715, 0.02887]"
 hsa_mandala(cube, stretch = "none")$labels$caption
 #> [1] "No contrast stretch applied"
+hsa_spectral_density(cube)$labels$caption
+#> [1] "128 bins over [0.1075, 0.5753]; values outside dropped, not clipped; log1p counts. White line: mean; dashed: 5-95%"
 ```
 
 That caption travels with the figure. If a reviewer asks what was done
@@ -195,3 +241,9 @@ hsa_fusion(cube, red = 850, green = 650, blue = 550, by = "wavelength")
 
 Both readers return the same `hsi_cube`, so nothing here changes between
 instruments — only the wavelengths in the caption.
+
+A reasonable habit with an unfamiliar recording is to run
+`hsa_spectral_density(cube, show_limits = TRUE)` first. If the
+distribution is banded, truncated, or piled against one end, that is
+worth knowing before choosing how to render it — and worth saying in the
+figure caption either way.
