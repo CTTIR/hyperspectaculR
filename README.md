@@ -1,6 +1,10 @@
 # hyperspectaculR
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21889974.svg)](https://doi.org/10.5281/zenodo.21889974)
+
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/CTTIR/hyperspectaculR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/CTTIR/hyperspectaculR/actions/workflows/R-CMD-check.yaml)
+[![pkgdown](https://github.com/CTTIR/hyperspectaculR/actions/workflows/pkgdown.yaml/badge.svg)](https://cttir.github.io/hyperspectaculR/)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
@@ -70,6 +74,7 @@ hsa_fusion(cube, red = 750, green = 600, blue = 500, by = "wavelength")
 | `hsa_mandala()` | Concentric annuli, each drawn from a different wavelength |
 | `hsa_spectral_flux()` | Cumulative absolute change between consecutive bands |
 | `hsa_fusion()` | Colour composite from three averaged band groups |
+| `hsa_spectral_density()` | Reflectance against wavelength across every pixel |
 | `hsa_theme()` | Dark, chrome-free theme for image panels |
 | `hsa_palette()` | Perceptually uniform colour ramps |
 | `hsa_demo_cube()` | Deterministic synthetic cube for examples and tests |
@@ -93,10 +98,15 @@ gitignored, for local review only.
 
 ## Status
 
-Early. The three compositions above are implemented and tested; more are
-planned — spectral gradient fields, quartile panels, 3-D spectral surfaces and
-band animations existed in an earlier draft of this package and are being
-rewritten against the `hsi_cube` class rather than ported.
+Early. Four compositions are implemented and tested. Spectral gradient fields
+and spectral quartiles are next.
+
+Two items from an earlier draft have been **dropped rather than ported**, for
+the same reason: they fail the package's own rule. A 3-D height surface is one
+scalar per pixel by definition, so its third dimension is a single band or a
+derived index — the spectral axis is gone. A band animation is a sequence of
+single-band images, so it fails frame by frame. Neither becomes defensible by
+being rendered more attractively.
 
 A note on provenance: an earlier version of this package shipped its own TIVITA
 reader and a gallery of 54 images. That reader misparsed the container, so

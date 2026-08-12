@@ -22,6 +22,7 @@ reference:
       - hsa_mandala
       - hsa_spectral_flux
       - hsa_fusion
+      - hsa_spectral_density
 
   - title: Appearance
     desc: >

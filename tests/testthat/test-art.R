@@ -106,3 +106,56 @@ test_that("the stretch helper reports the limits it used", {
   none <- hyperspectaculR:::.stretch(x, "none")
   expect_equal(none$values, x)
 })
+
+
+test_that("spectral density returns a ggplot and reports the pixel count", {
+  cube <- hsa_demo_cube()
+  p <- hsa_spectral_density(cube)
+  expect_s3_class(p, "ggplot")
+  expect_match(p$labels$subtitle, "pixel values over 24 bands")
+  expect_match(p$labels$x, "wavelength")
+})
+
+test_that("out-of-range values are dropped rather than clipped", {
+  # Clipping would pile outlier mass into the end bins and manufacture a
+  # bright edge -- precisely the artefact this figure exists to expose.
+  cube <- hsa_demo_cube()
+  lim <- range(cube$data)
+
+  spiked <- cube
+  spiked$data[1, 1, 1] <- 1000
+
+  base <- hsa_spectral_density(cube, limits = lim)$data
+  with_outlier <- hsa_spectral_density(spiked, limits = lim)$data
+
+  expect_lte(sum(with_outlier$density), sum(base$density) + 1e-9)
+})
+
+test_that("the caption states bins, limits and the count transform", {
+  cube <- hsa_demo_cube()
+  cap <- hsa_spectral_density(cube, nbins = 64L)$labels$caption
+  expect_match(cap, "64 bins")
+  expect_match(cap, "dropped, not clipped")
+  expect_match(cap, "log1p")
+  expect_match(hsa_spectral_density(cube, transform = "identity")$labels$caption,
+               "linear")
+})
+
+test_that("per-band normalisation is reported and rescales each band", {
+  cube <- hsa_demo_cube()
+  p <- hsa_spectral_density(cube, normalise = "band", transform = "identity")
+  expect_match(p$labels$caption, "normalised per band")
+  # each band's column should now sum to about 1
+  by_band <- tapply(p$data$density, p$data$wavelength, sum)
+  expect_true(all(abs(by_band - 1) < 1e-8))
+})
+
+test_that("degenerate input is rejected clearly", {
+  cube <- hsa_demo_cube()
+  expect_error(hsa_spectral_density(cube, limits = c(1, 1)), "increasing")
+  expect_error(hsa_spectral_density(cube, limits = c(500, 600)), "No values")
+
+  empty <- cube
+  empty$data[] <- NA_real_
+  expect_error(hsa_spectral_density(empty), "no finite values")
+})
