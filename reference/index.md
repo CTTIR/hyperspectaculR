@@ -12,6 +12,8 @@ stretch it applied.
   : Cumulative Spectral Change
 - [`hsa_fusion()`](https://cttir.github.io/hyperspectaculR/reference/hsa_fusion.md)
   : Multi-Band Spectral Fusion
+- [`hsa_spectral_density()`](https://cttir.github.io/hyperspectaculR/reference/hsa_spectral_density.md)
+  : Spectral Density
 
 ## Appearance
 

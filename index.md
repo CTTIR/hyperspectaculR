@@ -1,5 +1,7 @@
 # hyperspectaculR
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21889974.svg)](https://doi.org/10.5281/zenodo.21889974)
+
 Publication-grade artistic visualisation of hyperspectral imagery.
 
 Where [`hyperspectR`](https://github.com/CTTIR/hyperspectR) renders
@@ -72,6 +74,7 @@ hsa_fusion(cube, red = 750, green = 600, blue = 500, by = "wavelength")
 | [`hsa_mandala()`](https://cttir.github.io/hyperspectaculR/reference/hsa_mandala.md) | Concentric annuli, each drawn from a different wavelength |
 | [`hsa_spectral_flux()`](https://cttir.github.io/hyperspectaculR/reference/hsa_spectral_flux.md) | Cumulative absolute change between consecutive bands |
 | [`hsa_fusion()`](https://cttir.github.io/hyperspectaculR/reference/hsa_fusion.md) | Colour composite from three averaged band groups |
+| [`hsa_spectral_density()`](https://cttir.github.io/hyperspectaculR/reference/hsa_spectral_density.md) | Reflectance against wavelength across every pixel |
 | [`hsa_theme()`](https://cttir.github.io/hyperspectaculR/reference/hsa_theme.md) | Dark, chrome-free theme for image panels |
 | [`hsa_palette()`](https://cttir.github.io/hyperspectaculR/reference/hsa_palette.md) | Perceptually uniform colour ramps |
 | [`hsa_demo_cube()`](https://cttir.github.io/hyperspectaculR/reference/hsa_demo_cube.md) | Deterministic synthetic cube for examples and tests |
@@ -96,10 +99,16 @@ is gitignored, for local review only.
 
 ## Status
 
-Early. The three compositions above are implemented and tested; more are
-planned — spectral gradient fields, quartile panels, 3-D spectral
-surfaces and band animations existed in an earlier draft of this package
-and are being rewritten against the `hsi_cube` class rather than ported.
+Early. Four compositions are implemented and tested. Spectral gradient
+fields and spectral quartiles are next.
+
+Two items from an earlier draft have been **dropped rather than
+ported**, for the same reason: they fail the package’s own rule. A 3-D
+height surface is one scalar per pixel by definition, so its third
+dimension is a single band or a derived index — the spectral axis is
+gone. A band animation is a sequence of single-band images, so it fails
+frame by frame. Neither becomes defensible by being rendered more
+attractively.
 
 A note on provenance: an earlier version of this package shipped its own
 TIVITA reader and a gallery of 54 images. That reader misparsed the
