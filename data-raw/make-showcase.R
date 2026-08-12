@@ -101,6 +101,14 @@ for (nm in names(subjects)) {
   save_fig(hsa_mandala(cube, n_rings = 48) +
              labs(title = paste0("Spectral mandala — ", s$label)),
            paste0(nm, "_mandala"))
+
+  # Shown with the stretch limits drawn on, because this is the figure the
+  # others should be read against: it is the distribution their contrast
+  # stretch is applied to. Shorter than the image panels -- it is a plot with
+  # axes, not a square image.
+  save_fig(hsa_spectral_density(cube, show_limits = TRUE) +
+             labs(title = paste0("Spectral density — ", s$label)),
+           paste0(nm, "_density"), height = 4.6)
 }
 
 ## Clinical subjects, rendered locally only, never committed.
@@ -136,6 +144,9 @@ if (!is.null(ref)) {
   save_fig(hsa_fusion(ref, stretch = "range") +
              labs(subtitle = "full-range stretch rather than 2-98%"),
            "study_fusion_fullrange")
+  save_fig(hsa_spectral_density(ref, normalise = "band") +
+             labs(subtitle = "normalised per band, so sparsely sampled bands stay visible"),
+           "study_density_perband", height = 4.6)
 }
 
 cat("\nwrote", length(list.files(OUT, pattern = "[.]png$")), "figures to", OUT, "\n")
