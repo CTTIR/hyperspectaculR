@@ -1,0 +1,122 @@
+<svg width="500" height="580" viewBox="0 0 500 580" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bghsa" cx="50%" cy="46%" r="62%">
+      <stop offset="0%"  stop-color="#1e0a2e"/>
+      <stop offset="100%" stop-color="#0a0414"/>
+    </radialGradient>
+
+    <!-- Full spectral ramp — same physics as hyperspectR, reused for continuity -->
+    <linearGradient id="specRampA" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#6600cc"/>
+      <stop offset="12%"  stop-color="#4400ff"/>
+      <stop offset="24%"  stop-color="#0044ff"/>
+      <stop offset="36%"  stop-color="#00aaff"/>
+      <stop offset="48%"  stop-color="#00dd88"/>
+      <stop offset="60%"  stop-color="#aaee00"/>
+      <stop offset="72%"  stop-color="#ffdd00"/>
+      <stop offset="82%"  stop-color="#ff8800"/>
+      <stop offset="92%"  stop-color="#ff3300"/>
+      <stop offset="100%" stop-color="#cc0022"/>
+    </linearGradient>
+
+    <clipPath id="hexhsa">
+      <polygon points="250,30 455,145 455,375 250,490 45,375 45,145"/>
+    </clipPath>
+  </defs>
+
+  <polygon points="250,30 455,145 455,375 250,490 45,375 45,145" fill="url(#bghsa)"/>
+
+  <g clip-path="url(#hexhsa)">
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- hsa_mandala() — THE signature: concentric spectral      -->
+    <!-- annuli, each ring a different wavelength, sweeping       -->
+    <!-- outward from centre. Centre ≈ (250,262).                -->
+    <!-- Segmented rings so each annulus reads as its own band.  -->
+    <!-- ══════════════════════════════════════════════════════ -->
+
+    <!-- Ring set: radius from inner to outer, colour marches the spectrum -->
+    <!-- Each ring is a stroked circle; opacity high; incremental radius.  -->
+    <circle cx="250" cy="262" r="14"  fill="none" stroke="#6600cc" stroke-width="9" opacity="0.95"/>
+    <circle cx="250" cy="262" r="24"  fill="none" stroke="#4400ff" stroke-width="9" opacity="0.93"/>
+    <circle cx="250" cy="262" r="34"  fill="none" stroke="#0044ff" stroke-width="9" opacity="0.9"/>
+    <circle cx="250" cy="262" r="44"  fill="none" stroke="#00aaff" stroke-width="9" opacity="0.88"/>
+    <circle cx="250" cy="262" r="54"  fill="none" stroke="#00dd88" stroke-width="9" opacity="0.86"/>
+    <circle cx="250" cy="262" r="64"  fill="none" stroke="#aaee00" stroke-width="9" opacity="0.84"/>
+    <circle cx="250" cy="262" r="74"  fill="none" stroke="#ffdd00" stroke-width="9" opacity="0.82"/>
+    <circle cx="250" cy="262" r="84"  fill="none" stroke="#ff8800" stroke-width="9" opacity="0.8"/>
+    <circle cx="250" cy="262" r="94"  fill="none" stroke="#ff3300" stroke-width="9" opacity="0.78"/>
+    <circle cx="250" cy="262" r="104" fill="none" stroke="#cc0022" stroke-width="9" opacity="0.75"/>
+
+    <!-- Radial spokes — sampling directions, thin dark lines dividing the mandala -->
+    <g stroke="#0a0414" stroke-width="1.6" opacity="0.55">
+      <line x1="250" y1="262" x2="250" y2="152"/>
+      <line x1="250" y1="262" x2="345" y2="207"/>
+      <line x1="250" y1="262" x2="345" y2="317"/>
+      <line x1="250" y1="262" x2="250" y2="372"/>
+      <line x1="250" y1="262" x2="155" y2="317"/>
+      <line x1="250" y1="262" x2="155" y2="207"/>
+    </g>
+    <!-- 30°-offset spokes for a 12-fold mandala feel -->
+    <g stroke="#0a0414" stroke-width="1" opacity="0.35">
+      <line x1="250" y1="262" x2="305" y2="167"/>
+      <line x1="250" y1="262" x2="360" y2="262"/>
+      <line x1="250" y1="262" x2="305" y2="357"/>
+      <line x1="250" y1="262" x2="195" y2="357"/>
+      <line x1="250" y1="262" x2="140" y2="262"/>
+      <line x1="250" y1="262" x2="195" y2="167"/>
+    </g>
+
+    <!-- Bright core -->
+    <circle cx="250" cy="262" r="8" fill="#faf0ff" opacity="0.95"/>
+    <circle cx="250" cy="262" r="4" fill="#ffffff"/>
+    <!-- soft glow over the whole mandala -->
+    <circle cx="250" cy="262" r="112" fill="none" stroke="#e9b8ff" stroke-width="1" opacity="0.25"/>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- hsa_spectral_flux() hint — a cumulative-change curve    -->
+    <!-- riding along the bottom, drawn in spectral colours      -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <path d="M 96,398 Q 130,392 150,384 Q 175,374 195,388 Q 215,401 240,378
+             Q 262,358 285,388 Q 305,412 330,386 Q 352,364 378,380 Q 396,391 404,384"
+      fill="none" stroke="url(#specRampA)" stroke-width="2.6" opacity="0.85" stroke-linecap="round"/>
+    <!-- flux baseline -->
+    <line x1="112" y1="406" x2="388" y2="406" stroke="#4a2a6a" stroke-width="0.6" opacity="0.4"/>
+    <text font-family="monospace" font-size="7" fill="#c89bf0" opacity="0.6"
+      text-anchor="middle" x="250" y="420">spectral flux</text>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- hsa_fusion() hint — three averaged band-group swatches  -->
+    <!-- top-left, overlapping translucent (RGB composite)       -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <circle cx="96"  cy="172" r="15" fill="#ff3300" opacity="0.5"/>
+    <circle cx="110" cy="180" r="15" fill="#00dd88" opacity="0.5"/>
+    <circle cx="103" cy="164" r="15" fill="#0044ff" opacity="0.5"/>
+    <text font-family="monospace" font-size="6.5" fill="#c89bf0" opacity="0.55"
+      text-anchor="middle" x="103" y="200">fusion</text>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- hsa_spectral_density() hint — tiny stacked ridge lines  -->
+    <!-- top-right                                               -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <path d="M 372,166 Q 384,150 396,166 Q 402,158 408,166" fill="none" stroke="#00aaff" stroke-width="1.2" opacity="0.6"/>
+    <path d="M 372,174 Q 386,156 400,174 Q 404,168 410,174" fill="none" stroke="#00dd88" stroke-width="1.2" opacity="0.55"/>
+    <path d="M 372,182 Q 388,166 402,182 Q 406,176 411,182" fill="none" stroke="#ffdd00" stroke-width="1.2" opacity="0.5"/>
+    <text font-family="monospace" font-size="6.5" fill="#c89bf0" opacity="0.55"
+      text-anchor="middle" x="392" y="198">density</text>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- ggplot provenance — subtle note                         -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <text font-family="monospace" font-size="7" fill="#7a5a9a" opacity="0.55"
+      text-anchor="middle" x="250" y="440">hsi_cube → ggplot</text>
+
+  </g>
+
+  <!-- Hex border — displayed violet-magenta: related to hyperspectR's -->
+  <!-- imaging blue but shifted warm/artistic to set the display sibling apart -->
+  <polygon points="250,30 455,145 455,375 250,490 45,375 45,145"
+    fill="none" stroke="#9C27B0" stroke-width="11" stroke-linejoin="round"/>
+  <polygon points="250,44 441,153 441,367 250,476 59,367 59,153"
+    fill="none" stroke="#CE93D8" stroke-width="1.5" stroke-linejoin="round" opacity="0.6"/>
+</svg>
