@@ -1,0 +1,45 @@
+Package: hyperspectaculR
+Title: Publication-Grade Artistic Visualization of Hyperspectral Imagery
+Version: 0.1.0
+Authors@R: person("R.", "Heller", email = "raban.heller@charite.de",
+    role = c("aut", "cre", "cph"), comment = c(ORCID = "0000-0001-8006-9742"))
+Description: Renders hyperspectral imaging data as figures intended for
+    publication and display rather than inspection. Builds on the 'hsi_cube'
+    class from 'hyperspectR', adding compositions that exploit the spectral
+    dimension directly: radial spectral mandalas, cumulative band-difference
+    fields, multi-band fusions and spectral gradient fields. Every function
+    returns a 'ggplot' object, so figures compose, theme and export
+    reproducibly, and every rendering states the normalisation it applied so
+    that striking output remains scientifically defensible.
+License: MIT + file LICENSE
+URL: https://github.com/CTTIR/hyperspectaculR,
+    https://cttir.github.io/hyperspectaculR/
+BugReports: https://github.com/CTTIR/hyperspectaculR/issues
+Encoding: UTF-8
+Language: en-US
+Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.1.0)
+Imports:
+    cli,
+    ggplot2,
+    grDevices,
+    rlang,
+    scales,
+    stats,
+    viridisLite
+Suggests:
+    hyperspectR,
+    tivis.r,
+    patchwork,
+    testthat (>= 3.0.0),
+    vdiffr,
+    withr,
+    knitr,
+    rmarkdown,
+    covr
+Additional_repositories: https://cttir.r-universe.dev
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+Config/Needs/website: CTTIR/themakR
+Config/roxygen2/version: 8.0.0

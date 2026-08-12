@@ -1,0 +1,18 @@
+# Raw hyperspectral source data — kept locally, never committed
+# (TIVITA SpecCube.dat files exceed GitHub's 100 MB per-file limit,
+#  and contain patient-derived measurements)
+/data/
+
+# R
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+*.tar.gz
+*.Rcheck/
+.Renviron
+
+# OS
+.DS_Store
+Thumbs.db
