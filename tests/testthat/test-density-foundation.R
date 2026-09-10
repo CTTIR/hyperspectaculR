@@ -182,7 +182,8 @@ test_that("global references use independent masked finite quantiles", {
   expect_equal(record$global_references$population, 6)
   expect_match(plot$labels$caption, "25-75%")
   expect_match(plot$labels$caption, "including values outside")
-  expect_match(plot$labels$caption, "separate from image\\s+enhancement")
+  expect_match(plot$labels$caption,
+               "separate\\s+from\\s+image\\s+enhancement")
 
   changed <- x
   changed[2, 2, ] <- c(-1e300, 1e300)
@@ -203,7 +204,7 @@ test_that("global references use independent masked finite quantiles", {
                                      nbins = 2, show_limits = TRUE,
                                      transform = "identity")
   expect_length(unique(density_record(coincident)$global_references$values), 1)
-  expect_match(coincident$labels$caption, "share one line")
+  expect_match(coincident$labels$caption, "share\\s+one\\s+line")
 })
 
 test_that("binned overlays describe retained pixels and are compact provenance", {

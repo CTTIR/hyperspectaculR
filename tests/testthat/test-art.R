@@ -137,6 +137,8 @@ test_that("the caption states bins, limits and the count transform", {
   expect_match(cap, "64 bins")
   expect_match(cap, "dropped, not clipped")
   expect_match(cap, "log1p")
+  expect_match(cap, "White binned mean")
+  expect_match(cap, "dashed binned 5-95% pixel envelope")
   expect_match(hsa_spectral_density(cube, transform = "identity")$labels$caption,
                "linear")
 })

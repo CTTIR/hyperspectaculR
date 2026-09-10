@@ -1,4 +1,6 @@
-Benchmarks compare audit baseline `1df0bdd` with the corrected numerical implementation at `12d7428`. Some candidate records identify the subsequent documentation-only commit `9c385c8`; R source, DESCRIPTION and NAMESPACE were unchanged and all candidate records report a clean source state. The complete [measurement table](benchmarks.csv) includes medians, minima, maxima, versions, source revisions and dimensions.
+Benchmarks compare audit baseline `1df0bdd` with the corrected numerical implementation at `12d7428`. Some candidate records identify the subsequent documentation-only commit `9c385c8`; R source, DESCRIPTION and NAMESPACE were unchanged. All 26 records identify their source revision and report a clean source state. The complete [measurement table](benchmarks.csv) includes medians, minima, maxima, versions, source revisions and dimensions.
+
+The three early audit-density baseline records predated source-identity capture and were rerun with the same final harness. Their committed rows are fresh observations, not historical values with metadata backfilled; the original logs and RDS records are preserved separately. `NA` remains only where older auxiliary metrics were not recorded.
 
 The host was an Intel Xeon w9-3475X (36 cores/72 threads), Ubuntu 26.04, R 4.6.1 and ggplot2 4.0.3. Each case runs in a fresh R process, constructs a seeded synthetic cube (seed 42), warms a small plot, then measures three repetitions. Garbage collection precedes each repetition. Calculation and ggplot/grid drawing are measured separately. Performance cases ran sequentially; the three short demo cases were rerun after a brief initial overlap with validation to keep the reported comparison free of that workload.
 
@@ -17,14 +19,14 @@ The table below shows median calculation seconds, profiled cumulative calculatio
 | demo / auto | 0.043 → 0.048 | 0.0 → 0.0 | 213.6 → 220.6 |
 | demo / references | 0.048 → 0.050 | 0.0 → 0.0 | 221.8 → 218.4 |
 | demo / fixed | 0.041 → 0.045 | 0.0 → 0.0 | 210.6 → 211.2 |
-| audit / auto | 0.755 → 0.818 | 437.5 → 156.3 | 745.0 → 645.5 |
-| audit / references | 1.226 → 0.851 | 1125.0 → 156.3 | 822.1 → 641.5 |
-| audit / fixed | 0.625 → 0.411 | 156.3 → 0.0 | 548.4 → 331.6 |
+| audit / auto | 0.732 → 0.818 | 437.5005 → 156.2501 | 652.5703 → 645.4922 |
+| audit / references | 1.219 → 0.851 | 1125.0012 → 156.2501 | 837.9766 → 641.4883 |
+| audit / fixed | 0.604 → 0.411 | 156.2502 → 0.0000 | 568.8516 → 331.6289 |
 | large / auto | 2.482 → 2.445 | 3398.0 → 3866.8 | 1847.7 → 1396.1 |
 | large / references | 4.061 → 2.529 | 5976.2 → 3866.8 | 2285.3 → 1480.1 |
 | large / fixed | 1.611 → 1.600 | 2343.8 → 2109.5 | 1370.3 → 660.9 |
 
-Adding global references now adds **0%** profiled calculation allocation over automatic limits on both audit and large fixtures, meeting the proposed ceiling of 25%. Joint quantile work replaces the discarded stretched cube. At audit size, the reference case falls from 1,125.0 to 156.3 MiB of profiled traffic.
+Adding global references now adds **0%** profiled calculation allocation over automatic limits on both audit and large fixtures, meeting the proposed ceiling of 25%. Joint quantile work replaces the discarded stretched cube. At audit size, the reference case falls from 1,125.0012 to 156.2501 MiB of profiled traffic.
 
 The fixed-limit path has no additional allocation proportional to all cube elements. At large size its largest profiled allocation falls from 234.375 to 2.344 MiB: one of 100 bands. Its peak RSS falls 51.8%. Repeated allocation of short-lived band buffers still produces cumulative traffic; bounded live working storage does not imply zero total allocation.
 
