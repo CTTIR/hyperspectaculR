@@ -140,7 +140,8 @@ NULL
     cli::cli_abort("{.arg band} must be one whole index in 1:{nb}.", call = call)
   }
   d <- dim(cube$data)
-  out <- matrix(cube$data[, , as.integer(band)], nrow = d[1L], ncol = d[2L])
+  out <- cube$data[, , as.integer(band), drop = FALSE]
+  dim(out) <- d[1:2]
   out[!is.finite(out)] <- NA_real_
   if (!is.null(cube$mask)) out[!cube$mask] <- NA_real_
   out

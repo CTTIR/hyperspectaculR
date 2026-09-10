@@ -6,7 +6,9 @@
 \alias{hyperspectaculR-package}
 \title{hyperspectaculR: Publication-Grade Artistic Visualization of Hyperspectral Imagery}
 \description{
-Renders hyperspectral imaging data as figures intended for publication and display rather than inspection. Builds on the 'hsi_cube' class from 'hyperspectR', adding compositions that exploit the spectral dimension directly: radial spectral mandalas, cumulative band-difference fields, multi-band fusions and spectral gradient fields. Every function returns a 'ggplot' object, so figures compose, theme and export reproducibly, and every rendering states the normalisation it applied so that striking output remains scientifically defensible.
+\if{html}{\figure{logo.svg}{options: style='float: right' alt='logo' width='120'}}
+
+Creates artistic compositions and descriptive summaries from hyperspectral imaging cubes or numeric arrays. Provides radial spectral mandalas, cumulative spectral change, multi-band fusions, exact spectral density histograms, and experimental RMS spectral slope and within-pixel spectral quartiles. Returns composable 'ggplot' objects with explicit validity rules, display domains and compact original-rendering provenance. Does not read recordings, calibrate input values or infer physiology.
 }
 \seealso{
 Useful links:

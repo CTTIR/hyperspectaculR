@@ -54,15 +54,20 @@
 #' The result is a spatial composition; unequal annular areas do not estimate
 #' the spectral distribution. A single ring selects the first band.
 #'
-#' This exploits the spectral dimension rather than decorating a single band,
-#' which is what distinguishes it from an ordinary false-colour rendering. The
+#' This uses the spectral dimension for a spatial composition. A single band
+#' or repeated ring selections can produce a degenerate single-band result. The
 #' default radius-to-band-index mapping is linear. Wavelength sampling uses
 #' equally spaced physical targets and nearest measured bands, with ties toward
 #' shorter wavelengths. Repeated selections and empty rings retain the geometry
 #' and are disclosed in the caption and provenance.
 #'
 #' @param cube An `hsi_cube` (from \pkg{hyperspectR}) or a 3-D array with
-#'   dimensions `(rows, cols, bands)`.
+#'   dimensions `(rows, cols, bands)`, of integer or double values. Optional
+#'   `wavelengths` metadata must be finite, unique and strictly increasing in
+#'   nm. Without it, coordinates are band indices. An optional logical spatial
+#'   `mask` has dimensions `(rows, cols)` and no missing entries; `FALSE`
+#'   excludes a pixel. Arrays may carry these as attributes; an `hsi_cube` may
+#'   carry them as list fields. Nonfinite observations are excluded.
 #' @param sampling Ring targets: `"index"` (default) or `"wavelength"`.
 #'   Wavelength sampling requires physical metadata in nm.
 #' @param centre Numeric length-2 vector `c(x, y)` in pixels. `NULL` (default)
@@ -77,7 +82,8 @@
 #' @param display_limits Two increasing finite endpoints used as the fixed
 #'   colour domain for `stretch = "none"`. Default `c(0, 1)`.
 #' @param value_label A truthful label for the input values. Default
-#'   `"input value"`.
+#'   `"input value"`. A reflectance label requires known upstream calibration;
+#'   numeric range alone cannot establish calibration.
 #' @param interpolate Logical; interpolate raster pixels. Default `TRUE`.
 #'
 #' @return A \pkg{ggplot2} object.
@@ -164,10 +170,18 @@ hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
   }
   sampling_note <- if (sampling == "index") "linear band-index sampling" else
     "equally spaced wavelength targets; nearest measured bands"
-  subtitle <- sprintf("%d rings; %s (%s)", n_rings, sampling_note, coordinate_note)
+  subtitle <- .wrap_caption(
+    sprintf("%d rings; %s (%s)", n_rings, sampling_note, coordinate_note),
+    width = 80L
+  )
   caption <- .wrap_caption(paste(
     .stretch_caption(st, value_label = value_label),
-    sprintf("Ring bands: %s", paste(band_of_ring, collapse = ", ")),
+    if (length(band_of_ring) <= 12L) {
+      sprintf("Ring bands: %s", paste(band_of_ring, collapse = ", "))
+    } else {
+      sprintf("Ring bands: %d selections spanning %d-%d; full order in provenance",
+              length(band_of_ring), min(band_of_ring), max(band_of_ring))
+    },
     sprintf("%d repeated selections; %d empty rings", length(repeated_rings), length(empty_rings)),
     "Spatial composition; unequal annular areas do not estimate the spectral distribution",
     sep = "; "
@@ -203,7 +217,7 @@ hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
 #'
 #' Sums the absolute change between consecutive bands at every pixel, giving a
 #' field of total spectral variability. Flat spectra appear dark; pixels whose
-#' reflectance swings across the spectrum appear bright.
+#' input values change across the spectrum appear bright.
 #'
 #' Unlike a single-band image this cannot be produced from any one wavelength,
 #' and unlike a variance map it is sensitive to the ordering of the bands, so
@@ -307,10 +321,10 @@ hsa_spectral_flux <- function(cube, palette = "inferno", normalise = TRUE,
 
 #' Multi-Band Spectral Fusion
 #'
-#' Builds a colour composite by averaging three *groups* of bands rather than
-#' picking three single wavelengths. Averaging suppresses per-band sensor noise
-#' and yields smoother, more saturated images than a three-band composite,
-#' while remaining a straightforward and disclosable operation.
+#' Builds a colour composite by equally averaging three groups of measured
+#' bands. Averaging may reduce independent band noise but does not calibrate
+#' values. Explicit groups may overlap; singleton groups are allowed, including
+#' identical channels from one band. Each channel uses its own stretch.
 #'
 #' @inheritParams hsa_mandala
 #' @param red,green,blue Integer vectors of band indices, or numeric
@@ -446,14 +460,14 @@ hsa_fusion <- function(cube, red = NULL, green = NULL, blue = NULL,
 
   describe_group <- function(name, idx) {
     if (cb$has_wavelengths) {
-      sprintf("%s bands %s (%g-%g nm)", name, paste(idx, collapse = ","),
+      sprintf("%s bands %s (%g-%g nm)", name, .compact_band_label(idx),
               min(cb$coordinates[idx]), max(cb$coordinates[idx]))
     } else {
-      sprintf("%s bands %s", name, paste(idx, collapse = ","))
+      sprintf("%s bands %s", name, .compact_band_label(idx))
     }
   }
   subtitle <- paste(describe_group("R", ri), describe_group("G", gi),
-                    describe_group("B", bi), sep = " | ")
+                    describe_group("B", bi), sep = "\n")
   channel_captions <- vapply(c("red", "green", "blue"), function(nm) {
     paste0(toupper(substr(nm, 1, 1)), ": ",
            .stretch_caption(enhancement[[nm]], value_label = value_label))
@@ -494,6 +508,18 @@ hsa_fusion <- function(cube, red = NULL, green = NULL, blue = NULL,
   )
 }
 
+
+# Describe membership without implying that gaps contain selected bands.
+.compact_band_label <- function(indices) {
+  ordered <- sort(indices)
+  n <- length(ordered)
+  if (n == 1L) return(as.character(ordered))
+  if (all(diff(ordered) == 1L)) {
+    return(sprintf("%d-%d (%d bands)", ordered[1L], ordered[n], n))
+  }
+  if (n <= 6L) return(paste(ordered, collapse = ","))
+  sprintf("%d selected within %d-%d; indices in provenance", n, ordered[1L], ordered[n])
+}
 
 # Caption text stating exactly what enhancement was applied. Kept in one place
 # so no rendering can quietly omit it.

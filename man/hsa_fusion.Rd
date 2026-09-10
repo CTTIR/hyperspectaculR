@@ -11,12 +11,21 @@ hsa_fusion(
   blue = NULL,
   by = c("index", "wavelength"),
   stretch = c("percentile", "range", "none"),
-  probs = c(0.02, 0.98)
+  probs = c(0.02, 0.98),
+  display_limits = c(0, 1),
+  value_label = "input value",
+  interpolate = TRUE,
+  missing = c("propagate", "available")
 )
 }
 \arguments{
 \item{cube}{An \code{hsi_cube} (from \pkg{hyperspectR}) or a 3-D array with
-dimensions \verb{(rows, cols, bands)}.}
+dimensions \verb{(rows, cols, bands)}, of integer or double values. Optional
+\code{wavelengths} metadata must be finite, unique and strictly increasing in
+nm. Without it, coordinates are band indices. An optional logical spatial
+\code{mask} has dimensions \verb{(rows, cols)} and no missing entries; \code{FALSE}
+excludes a pixel. Arrays may carry these as attributes; an \code{hsi_cube} may
+carry them as list fields. Nonfinite observations are excluded.}
 
 \item{red, green, blue}{Integer vectors of band indices, or numeric
 wavelengths in nm when \code{by = "wavelength"}. \code{NULL} (default) splits the
@@ -29,15 +38,27 @@ spectrum into three contiguous thirds, long wavelengths to red.}
 
 \item{probs}{Percentiles for \code{stretch = "percentile"}. Default
 \code{c(0.02, 0.98)}.}
+
+\item{display_limits}{Two increasing finite endpoints used as the fixed
+colour domain for \code{stretch = "none"}. Default \code{c(0, 1)}.}
+
+\item{value_label}{A truthful label for the input values. Default
+\code{"input value"}. A reflectance label requires known upstream calibration;
+numeric range alone cannot establish calibration.}
+
+\item{interpolate}{Logical; interpolate raster pixels. Default \code{TRUE}.}
+
+\item{missing}{Missing-band policy. \code{"propagate"} (default) requires every
+selected band; \code{"available"} averages the finite contributors in a group.}
 }
 \value{
 A \pkg{ggplot2} object.
 }
 \description{
-Builds a colour composite by averaging three \emph{groups} of bands rather than
-picking three single wavelengths. Averaging suppresses per-band sensor noise
-and yields smoother, more saturated images than a three-band composite,
-while remaining a straightforward and disclosable operation.
+Builds a colour composite by equally averaging three groups of measured
+bands. Averaging may reduce independent band noise but does not calibrate
+values. Explicit groups may overlap; singleton groups are allowed, including
+identical channels from one band. Each channel uses its own stretch.
 }
 \examples{
 cube <- hsa_demo_cube()

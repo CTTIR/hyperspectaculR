@@ -223,7 +223,7 @@
   nb <- dim(cube$data)[3L]
   buffers <- vector("list", nb)
   for (band in seq_len(nb)) {
-    values <- as.vector(.cube_band(cube, band))
+    values <- .cube_band(cube, band)
     buffers[[band]] <- values[is.finite(values)]
   }
   unlist(buffers, use.names = FALSE)
@@ -346,7 +346,7 @@ hsa_spectral_density <- function(cube, nbins = 128L, limits = NULL,
   below <- above <- nonfinite <- finite <- kept <- numeric(nb)
   eligible <- rep(eligible_per_band, nb)
   for (band in seq_len(nb)) {
-    band_values <- as.vector(.cube_band(cb, band))
+    band_values <- .cube_band(cb, band)
     values <- band_values[is.finite(band_values)]
     finite[band] <- length(values)
     nonfinite[band] <- eligible[band] - finite[band]

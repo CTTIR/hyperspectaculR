@@ -40,11 +40,37 @@
        exponent = numerator$exponent + as.integer(overflow) - divisor$exponent)
 }
 
+# A conservative normal-range path avoids exponent decomposition for ordinary
+# flux values. Outside these bounds the complete binary calculation is used;
+# in particular, tiny contributions are never rounded before aggregation.
+.spectral_change_ordinary <- function(cube, denominator, valid) {
+  if (any(denominator < 1e-100 | denominator > 1e100)) return(NULL)
+  acc <- numeric(sum(valid))
+  previous <- as.double(.cube_band(cube, 1L)[valid])
+  for (b in seq_len(dim(cube$data)[3L] - 1L)) {
+    next_value <- as.double(.cube_band(cube, b + 1L)[valid])
+    difference <- abs(next_value - previous)
+    if (any(!is.finite(difference) | difference > 1e100 |
+            (difference > 0 & difference < 1e-100))) return(NULL)
+    divisor <- if (length(denominator) == 1L) denominator else denominator[b]
+    acc <- acc + difference / divisor
+    previous <- next_value
+  }
+  acc
+}
+
 .spectral_change <- function(cube, denominator, rms = FALSE) {
   d <- dim(cube$data)
   valid <- matrix(TRUE, d[1L], d[2L])
   for (b in seq_len(d[3L])) valid <- valid & is.finite(.cube_band(cube, b))
   out <- matrix(NA_real_, d[1L], d[2L])
+  if (!rms) {
+    ordinary <- .spectral_change_ordinary(cube, denominator, valid)
+    if (!is.null(ordinary)) {
+      out[valid] <- ordinary
+      return(out)
+    }
+  }
   acc <- numeric(sum(valid))
   exponent <- numeric(length(acc))
   previous <- .cube_band(cube, 1L)[valid]
@@ -160,6 +186,8 @@ hsa_spectral_gradient <- function(cube, palette = "inferno",
     ggplot2::labs(title = "Within-pixel spectral quartiles",
                   subtitle = "Experimental descriptive spectral summary", caption = caption) +
     hsa_theme() + ggplot2::theme(legend.position = "right",
+                               plot.caption.position = "plot",
+                               plot.caption = ggplot2::element_text(hjust = 0),
                                strip.text = ggplot2::element_text(colour = "#E8E8EC"))
 }
 
