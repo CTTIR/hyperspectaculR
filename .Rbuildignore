@@ -18,3 +18,5 @@
 ^\.zenodo\.json$
 ^hyperspectaculR_icon\.svg$
 ^figure$
+^ROADMAP\.md$
+^planning$
