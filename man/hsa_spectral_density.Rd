@@ -43,8 +43,9 @@ shares of the retained count in each band. Empty bands remain missing.}
 \code{probs}. These references include finite observations outside \code{limits} and
 are separate from image enhancement limits. Default \code{FALSE}.}
 
-\item{probs}{Percentiles for \code{stretch = "percentile"}. Default
-\code{c(0.02, 0.98)}.}
+\item{probs}{Two increasing finite probabilities between zero and one for
+the global raw eligible-value references when \code{show_limits = TRUE}.
+These do not set the histogram range or image enhancement limits.}
 
 \item{value_label}{A truthful label for the input values. Default
 \code{"input value"}. A reflectance label requires known upstream calibration;
