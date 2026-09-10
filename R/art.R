@@ -1,3 +1,52 @@
+.render_scalar_image <- function(data, palette, domain, interpolate,
+                                 title, subtitle, caption) {
+  force(data)
+  force(palette)
+  force(domain)
+  force(interpolate)
+  force(title)
+  force(subtitle)
+  force(caption)
+
+  ggplot2::ggplot(
+    data,
+    ggplot2::aes(x = .data$x, y = .data$y, fill = .data$value)
+  ) +
+    ggplot2::geom_raster(interpolate = interpolate) +
+    ggplot2::scale_fill_gradientn(
+      colours = hsa_palette(palette), limits = domain,
+      rescaler = .scale_rescaler, oob = scales::squish,
+      na.value = "transparent", guide = "none"
+    ) +
+    ggplot2::scale_y_reverse(expand = c(0, 0)) +
+    ggplot2::scale_x_continuous(expand = c(0, 0)) +
+    ggplot2::coord_fixed() +
+    ggplot2::labs(title = title, subtitle = subtitle, caption = caption) +
+    hsa_theme()
+}
+
+.render_fusion <- function(data, interpolate, subtitle, caption) {
+  force(data)
+  force(interpolate)
+  force(subtitle)
+  force(caption)
+
+  ggplot2::ggplot(
+    data,
+    ggplot2::aes(x = .data$x, y = .data$y, fill = .data$hex)
+  ) +
+    ggplot2::geom_raster(interpolate = interpolate) +
+    ggplot2::scale_fill_identity(na.value = "transparent") +
+    ggplot2::scale_y_reverse(expand = c(0, 0)) +
+    ggplot2::scale_x_continuous(expand = c(0, 0)) +
+    ggplot2::coord_fixed() +
+    ggplot2::labs(
+      title = "Spectral fusion", subtitle = subtitle, caption = caption
+    ) +
+    hsa_theme()
+}
+
+
 #' Radial Spectral Mandala
 #'
 #' Renders the scene as concentric annuli, each drawn from a sampled spectral
@@ -97,22 +146,10 @@ hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
     sep = "; "
   ))
 
-  p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$x, y = .data$y, fill = .data$value)) +
-    ggplot2::geom_raster(interpolate = interpolate) +
-    ggplot2::scale_fill_gradientn(
-      colours = hsa_palette(palette), limits = domain,
-      rescaler = .scale_rescaler, oob = scales::squish,
-      na.value = "transparent", guide = "none"
-    ) +
-    ggplot2::scale_y_reverse(expand = c(0, 0)) +
-    ggplot2::scale_x_continuous(expand = c(0, 0)) +
-    ggplot2::coord_fixed() +
-    ggplot2::labs(
-      title = "Spectral mandala",
-      subtitle = subtitle,
-      caption = caption
-    ) +
-    hsa_theme()
+  p <- .render_scalar_image(
+    df, palette, domain, interpolate,
+    title = "Spectral mandala", subtitle = subtitle, caption = caption
+  )
 
   .attach_provenance(
     p, cb,
@@ -180,22 +217,12 @@ hsa_spectral_flux <- function(cube, palette = "inferno", normalise = TRUE,
   domain <- if (identical(st$effective_method, "none")) display_limits else c(0, 1)
   quantity <- if (normalise) "mean absolute band step" else "total absolute band step"
 
-  p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$x, y = .data$y, fill = .data$value)) +
-    ggplot2::geom_raster(interpolate = interpolate) +
-    ggplot2::scale_fill_gradientn(
-      colours = hsa_palette(palette), limits = domain,
-      rescaler = .scale_rescaler, oob = scales::squish,
-      na.value = "transparent", guide = "none"
-    ) +
-    ggplot2::scale_y_reverse(expand = c(0, 0)) +
-    ggplot2::scale_x_continuous(expand = c(0, 0)) +
-    ggplot2::coord_fixed() +
-    ggplot2::labs(
-      title = "Cumulative spectral change",
-      subtitle = sprintf("%s across %d bands", quantity, d[3]),
-      caption = .wrap_caption(.stretch_caption(st, value_label = value_label))
-    ) +
-    hsa_theme()
+  p <- .render_scalar_image(
+    df, palette, domain, interpolate,
+    title = "Cumulative spectral change",
+    subtitle = sprintf("%s across %d bands", quantity, d[3]),
+    caption = .wrap_caption(.stretch_caption(st, value_label = value_label))
+  )
 
   .attach_provenance(
     p, cb,
@@ -375,18 +402,7 @@ hsa_fusion <- function(cube, red = NULL, green = NULL, blue = NULL,
     sprintf("missing=%s", missing), sep = "; "
   ))
 
-  p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$x, y = .data$y, fill = .data$hex)) +
-    ggplot2::geom_raster(interpolate = interpolate) +
-    ggplot2::scale_fill_identity(na.value = "transparent") +
-    ggplot2::scale_y_reverse(expand = c(0, 0)) +
-    ggplot2::scale_x_continuous(expand = c(0, 0)) +
-    ggplot2::coord_fixed() +
-    ggplot2::labs(
-      title = "Spectral fusion",
-      subtitle = subtitle,
-      caption = caption
-    ) +
-    hsa_theme()
+  p <- .render_fusion(df, interpolate, subtitle, caption)
 
   selection_record <- function(requested, idx) {
     list(requested = requested, indices = idx, coordinates = cb$coordinates[idx])

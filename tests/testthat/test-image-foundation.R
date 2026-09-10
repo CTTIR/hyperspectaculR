@@ -353,6 +353,24 @@ test_that("image provenance is compact, complete, and survives ggplot additions"
   }
 })
 
+test_that("image plots retain only compact rendering environments", {
+  source <- fusion_fixture()
+  plots <- list(
+    mandala = hsa_mandala(source, n_rings = 4),
+    flux = hsa_spectral_flux(source),
+    fusion = hsa_fusion(source, red = 5:6, green = 3:4, blue = 1:2)
+  )
+
+  for (name in names(plots)) {
+    expect_compact_render_environments(plots[[name]])
+    expect_warning(ggplot2::ggplot_build(plots[[name]]), NA, info = name)
+    expect_identical(
+      hyperspectaculR:::hsa_provenance(plots[[name]] + ggplot2::theme_bw()),
+      hyperspectaculR:::hsa_provenance(plots[[name]])
+    )
+  }
+})
+
 test_that("demo arguments and palette controls are strict and RNG absence is preserved", {
   invalid <- list(
     list(rows = 0),
