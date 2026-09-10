@@ -1,16 +1,15 @@
 Package: hyperspectaculR
 Title: Publication-Grade Artistic Visualization of Hyperspectral Imagery
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: person("R.", "Heller", email = "raban.heller@charite.de",
     role = c("aut", "cre", "cph"), comment = c(ORCID = "0000-0001-8006-9742"))
-Description: Renders hyperspectral imaging data as figures intended for
-    publication and display rather than inspection. Builds on the 'hsi_cube'
-    class from 'hyperspectR', adding compositions that exploit the spectral
-    dimension directly: radial spectral mandalas, cumulative band-difference
-    fields, multi-band fusions and spectral gradient fields. Every function
-    returns a 'ggplot' object, so figures compose, theme and export
-    reproducibly, and every rendering states the normalisation it applied so
-    that striking output remains scientifically defensible.
+Description: Creates artistic compositions and descriptive summaries from
+    hyperspectral imaging cubes or numeric arrays. Provides radial spectral
+    mandalas, cumulative spectral change, multi-band fusions, exact spectral
+    density histograms, and experimental RMS spectral slope and within-pixel
+    spectral quartiles. Returns composable 'ggplot' objects with explicit
+    validity rules, display domains and compact original-rendering provenance.
+    Does not read recordings, calibrate input values or infer physiology.
 License: MIT + file LICENSE
 URL: https://github.com/CTTIR/hyperspectaculR,
     https://cttir.github.io/hyperspectaculR/
@@ -22,7 +21,7 @@ Depends:
     R (>= 4.1.0)
 Imports:
     cli,
-    ggplot2,
+    ggplot2 (>= 3.4.0),
     grDevices,
     rlang,
     scales,
