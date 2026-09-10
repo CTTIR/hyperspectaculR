@@ -1,14 +1,14 @@
 #' Radial Spectral Mandala
 #'
-#' Renders the scene as concentric annuli, each drawn from a different
-#' wavelength: the innermost ring shows the shortest wavelength, the outermost
-#' the longest. The result is a single image that sweeps the spectral axis
-#' outward from a chosen centre.
+#' Renders the scene as concentric annuli, each drawn from a sampled spectral
+#' band: the innermost ring uses the first band and the outermost uses the last.
+#' The result is a single image that sweeps band indices outward from a chosen
+#' centre.
 #'
 #' This exploits the spectral dimension rather than decorating a single band,
 #' which is what distinguishes it from an ordinary false-colour rendering. The
-#' radius-to-wavelength mapping is linear and reported in the caption, so the
-#' figure remains readable as data.
+#' radius-to-band-index mapping is linear and the actual selections are
+#' reported in the caption, so the figure remains readable as data.
 #'
 #' @param cube An `hsi_cube` (from \pkg{hyperspectR}) or a 3-D array with
 #'   dimensions `(rows, cols, bands)`.
@@ -21,6 +21,11 @@
 #'   `"none"`.
 #' @param probs Percentiles for `stretch = "percentile"`. Default
 #'   `c(0.02, 0.98)`.
+#' @param display_limits Two increasing finite endpoints used as the fixed
+#'   colour domain for `stretch = "none"`. Default `c(0, 1)`.
+#' @param value_label A truthful label for the input values. Default
+#'   `"input value"`.
+#' @param interpolate Logical; interpolate raster pixels. Default `TRUE`.
 #'
 #' @return A \pkg{ggplot2} object.
 #'
@@ -32,49 +37,95 @@
 hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
                         palette = "magma",
                         stretch = c("percentile", "range", "none"),
-                        probs = c(0.02, 0.98)) {
+                        probs = c(0.02, 0.98), display_limits = c(0, 1),
+                        value_label = "input value", interpolate = TRUE) {
   cb <- .as_cube(cube)
   stretch <- match.arg(stretch)
+  probs <- .validate_probs(probs)
+  display_limits <- .validate_display_limits(display_limits)
+  value_label <- .validate_value_label(value_label)
+  interpolate <- .validate_flag(interpolate, "interpolate")
   d <- dim(cb$data)
   nrow_i <- d[1]; ncol_i <- d[2]; nb <- d[3]
 
-  n_rings <- max(1L, as.integer(n_rings))
-  if (is.null(centre)) centre <- c(ncol_i / 2, nrow_i / 2)
-  if (length(centre) != 2L || anyNA(centre)) {
-    cli::cli_abort("{.arg centre} must be a numeric vector {.code c(x, y)}.")
+  n_rings <- .validate_count(n_rings, "n_rings")
+  if (is.null(centre)) centre <- c((ncol_i + 1) / 2, (nrow_i + 1) / 2)
+  if (!is.numeric(centre) || length(centre) != 2L || any(!is.finite(centre))) {
+    cli::cli_abort("{.arg centre} must be a finite numeric vector {.code c(x, y)}.")
   }
 
-  # radius of every pixel, then ring index, then the band that ring shows
   xg <- matrix(rep(seq_len(ncol_i), each = nrow_i), nrow_i, ncol_i)
   yg <- matrix(rep(seq_len(nrow_i), times = ncol_i), nrow_i, ncol_i)
-  rad <- sqrt((xg - centre[1])^2 + (yg - centre[2])^2)
-  ring <- pmin(floor(rad / (max(rad) + 1e-9) * n_rings) + 1L, n_rings)
+  dx <- xg - centre[1L]
+  dy <- yg - centre[2L]
+  radius_scale <- max(abs(dx), abs(dy))
+  if (radius_scale == 0) {
+    radius_fraction <- matrix(0, nrow_i, ncol_i)
+  } else {
+    scaled_radius <- sqrt((dx / radius_scale)^2 + (dy / radius_scale)^2)
+    radius_fraction <- scaled_radius / max(scaled_radius)
+  }
+  ring <- pmin(floor(radius_fraction * n_rings) + 1L, n_rings)
   band_of_ring <- pmax(1L, pmin(nb, round(seq(1, nb, length.out = n_rings))))
 
   out <- matrix(NA_real_, nrow_i, ncol_i)
   for (k in seq_len(n_rings)) {
     sel <- ring == k
-    if (any(sel)) out[sel] <- cb$data[, , band_of_ring[k]][sel]
+    if (any(sel)) {
+      band <- .cube_band(cb, band_of_ring[k])
+      out[sel] <- band[sel]
+    }
   }
 
-  st <- .stretch(out, stretch, probs)
+  st <- .stretch(out, stretch, probs, display_limits)
   df <- .as_long(st$values)
+  df$raw_value <- as.vector(out)
+  domain <- if (identical(st$effective_method, "none")) display_limits else c(0, 1)
 
-  wl <- cb$wavelengths
-  ggplot2::ggplot(df, ggplot2::aes(x = .data$x, y = .data$y, fill = .data$value)) +
-    ggplot2::geom_raster(interpolate = TRUE) +
-    ggplot2::scale_fill_gradientn(colours = hsa_palette(palette), na.value = "transparent",
-                                  guide = "none") +
+  selected <- unique(band_of_ring)
+  coordinate_note <- if (identical(cb$coordinate_kind, "wavelength")) {
+    sprintf("wavelength coordinates %g-%g", min(cb$coordinates[selected]),
+            max(cb$coordinates[selected]))
+  } else {
+    "band-index coordinates"
+  }
+  subtitle <- sprintf("%d rings; linear band-index sampling (%s)",
+                      n_rings, coordinate_note)
+  caption <- .wrap_caption(paste(
+    .stretch_caption(st, value_label = value_label),
+    sprintf("Ring bands: %s", paste(band_of_ring, collapse = ", ")),
+    sep = "; "
+  ))
+
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$x, y = .data$y, fill = .data$value)) +
+    ggplot2::geom_raster(interpolate = interpolate) +
+    ggplot2::scale_fill_gradientn(
+      colours = hsa_palette(palette), limits = domain, oob = scales::squish,
+      na.value = "transparent", guide = "none"
+    ) +
     ggplot2::scale_y_reverse(expand = c(0, 0)) +
     ggplot2::scale_x_continuous(expand = c(0, 0)) +
     ggplot2::coord_fixed() +
     ggplot2::labs(
       title = "Spectral mandala",
-      subtitle = sprintf("%d rings, %g-%g nm outward from the centre",
-                         n_rings, min(wl), max(wl)),
-      caption = .stretch_caption(stretch, st$limits, probs)
+      subtitle = subtitle,
+      caption = caption
     ) +
     hsa_theme()
+
+  .attach_provenance(
+    p, cb,
+    quantity = list(name = "radial band sample", value_label = value_label),
+    selection = list(centre = as.numeric(centre), n_rings = n_rings,
+                     ring_band_indices = as.integer(band_of_ring),
+                     ring_coordinates = cb$coordinates[band_of_ring]),
+    missingness = list(policy = "propagate", valid_pixels = st$finite_count,
+                       excluded_pixels = st$excluded_count),
+    enhancement = .enhancement_record(st),
+    palette = palette,
+    interpolation = interpolate,
+    value_label = value_label
+  )
 }
 
 
@@ -90,8 +141,7 @@ hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
 #'
 #' @inheritParams hsa_mandala
 #' @param normalise Logical. Divide by the number of band steps, so the value
-#'   is a mean absolute step rather than a total. Default `TRUE`, which makes
-#'   cubes with different band counts comparable.
+#'   is a mean absolute step rather than a total. Default `TRUE`.
 #'
 #' @return A \pkg{ggplot2} object.
 #'
@@ -102,9 +152,16 @@ hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
 #' @export
 hsa_spectral_flux <- function(cube, palette = "inferno", normalise = TRUE,
                               stretch = c("percentile", "range", "none"),
-                              probs = c(0.02, 0.98)) {
+                              probs = c(0.02, 0.98),
+                              display_limits = c(0, 1),
+                              value_label = "input value", interpolate = TRUE) {
   cb <- .as_cube(cube)
   stretch <- match.arg(stretch)
+  normalise <- .validate_flag(normalise, "normalise")
+  probs <- .validate_probs(probs)
+  display_limits <- .validate_display_limits(display_limits)
+  value_label <- .validate_value_label(value_label)
+  interpolate <- .validate_flag(interpolate, "interpolate")
   d <- dim(cb$data)
   if (d[3] < 2L) {
     cli::cli_abort("Need at least 2 bands to measure spectral change; got {d[3]}.")
@@ -112,27 +169,46 @@ hsa_spectral_flux <- function(cube, palette = "inferno", normalise = TRUE,
 
   acc <- matrix(0, d[1], d[2])
   for (b in seq_len(d[3] - 1L)) {
-    acc <- acc + abs(cb$data[, , b + 1L] - cb$data[, , b])
+    acc <- acc + abs(.cube_band(cb, b + 1L) - .cube_band(cb, b))
   }
   if (normalise) acc <- acc / (d[3] - 1L)
 
-  st <- .stretch(acc, stretch, probs)
+  st <- .stretch(acc, stretch, probs, display_limits)
   df <- .as_long(st$values)
+  df$raw_value <- as.vector(acc)
+  domain <- if (identical(st$effective_method, "none")) display_limits else c(0, 1)
+  quantity <- if (normalise) "mean absolute band step" else "total absolute band step"
 
-  ggplot2::ggplot(df, ggplot2::aes(x = .data$x, y = .data$y, fill = .data$value)) +
-    ggplot2::geom_raster(interpolate = TRUE) +
-    ggplot2::scale_fill_gradientn(colours = hsa_palette(palette), na.value = "transparent",
-                                  guide = "none") +
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$x, y = .data$y, fill = .data$value)) +
+    ggplot2::geom_raster(interpolate = interpolate) +
+    ggplot2::scale_fill_gradientn(
+      colours = hsa_palette(palette), limits = domain, oob = scales::squish,
+      na.value = "transparent", guide = "none"
+    ) +
     ggplot2::scale_y_reverse(expand = c(0, 0)) +
     ggplot2::scale_x_continuous(expand = c(0, 0)) +
     ggplot2::coord_fixed() +
     ggplot2::labs(
       title = "Cumulative spectral change",
-      subtitle = sprintf("%s absolute step across %d bands",
-                         if (normalise) "mean" else "total", d[3]),
-      caption = .stretch_caption(stretch, st$limits, probs)
+      subtitle = sprintf("%s across %d bands", quantity, d[3]),
+      caption = .wrap_caption(.stretch_caption(st, value_label = value_label))
     ) +
     hsa_theme()
+
+  .attach_provenance(
+    p, cb,
+    quantity = list(name = quantity, normalised = normalise,
+                    denominator = if (normalise) d[3] - 1L else 1L,
+                    value_label = value_label),
+    selection = list(band_indices = seq_len(d[3]),
+                     coordinates = cb$coordinates),
+    missingness = list(policy = "propagate", valid_pixels = st$finite_count,
+                       excluded_pixels = st$excluded_count),
+    enhancement = .enhancement_record(st),
+    palette = palette,
+    interpolation = interpolate,
+    value_label = value_label
+  )
 }
 
 
@@ -148,6 +224,8 @@ hsa_spectral_flux <- function(cube, palette = "inferno", normalise = TRUE,
 #'   wavelengths in nm when `by = "wavelength"`. `NULL` (default) splits the
 #'   spectrum into three contiguous thirds, long wavelengths to red.
 #' @param by Either `"index"` (default) or `"wavelength"`.
+#' @param missing Missing-band policy. `"propagate"` (default) requires every
+#'   selected band; `"available"` averages the finite contributors in a group.
 #'
 #' @return A \pkg{ggplot2} object.
 #'
@@ -159,83 +237,249 @@ hsa_spectral_flux <- function(cube, palette = "inferno", normalise = TRUE,
 hsa_fusion <- function(cube, red = NULL, green = NULL, blue = NULL,
                        by = c("index", "wavelength"),
                        stretch = c("percentile", "range", "none"),
-                       probs = c(0.02, 0.98)) {
+                       probs = c(0.02, 0.98), display_limits = c(0, 1),
+                       value_label = "input value", interpolate = TRUE,
+                       missing = c("propagate", "available")) {
   cb <- .as_cube(cube)
   by <- match.arg(by)
   stretch <- match.arg(stretch)
+  missing <- match.arg(missing)
+  probs <- .validate_probs(probs)
+  display_limits <- .validate_display_limits(display_limits)
+  value_label <- .validate_value_label(value_label)
+  interpolate <- .validate_flag(interpolate, "interpolate")
   d <- dim(cb$data)
   nb <- d[3]
 
   if (is.null(red) && is.null(green) && is.null(blue)) {
-    cuts <- round(seq(1, nb + 1, length.out = 4))
-    blue  <- seq(cuts[1], cuts[2] - 1)
-    green <- seq(cuts[2], cuts[3] - 1)
-    red   <- seq(cuts[3], nb)
+    if (nb < 3L) {
+      cli::cli_abort("Default fusion groups require at least 3 bands.")
+    }
+    blue <- seq_len(floor(nb / 3))
+    green <- seq.int(floor(nb / 3) + 1L, floor(2 * nb / 3))
+    red <- seq.int(floor(2 * nb / 3) + 1L, nb)
+    default_groups <- TRUE
+  } else {
+    if (is.null(red) || is.null(green) || is.null(blue)) {
+      cli::cli_abort("{.arg red}, {.arg green}, and {.arg blue} must all be supplied together.")
+    }
+    default_groups <- FALSE
   }
 
   to_idx <- function(v, nm) {
-    if (is.null(v)) cli::cli_abort("{.arg {nm}} must be supplied when the others are.")
+    if (!is.numeric(v) || !length(v) || any(!is.finite(v))) {
+      cli::cli_abort("{.arg {nm}} must be a non-empty finite numeric vector.")
+    }
     if (identical(by, "wavelength")) {
-      vapply(v, function(w) which.min(abs(cb$wavelengths - w)), integer(1))
-    } else {
-      idx <- as.integer(v)
-      if (anyNA(idx) || any(idx < 1L) || any(idx > nb)) {
-        cli::cli_abort("{.arg {nm}} contains band indices outside 1:{nb}.")
+      if (!cb$has_wavelengths) {
+        cli::cli_abort("Explicit wavelength selection requires wavelength metadata.")
+      }
+      if (any(v < cb$coordinates[1L] | v > cb$coordinates[nb])) {
+        cli::cli_abort("{.arg {nm}} contains targets outside the wavelength range.")
+      }
+      idx <- vapply(v, function(w) which.min(abs(cb$coordinates - w)), integer(1))
+      if (anyDuplicated(idx)) {
+        cli::cli_abort("{.arg {nm}} contains targets that resolve to the same band.")
       }
       idx
+    } else {
+      if (any(v != floor(v))) {
+        cli::cli_abort("{.arg {nm}} must contain whole band indices.")
+      }
+      if (any(v < 1L) || any(v > nb)) {
+        cli::cli_abort("{.arg {nm}} contains band indices outside 1:{nb}.")
+      }
+      if (anyDuplicated(v)) {
+        cli::cli_abort("{.arg {nm}} band indices must be unique.")
+      }
+      as.integer(v)
     }
   }
-  ri <- to_idx(red, "red"); gi <- to_idx(green, "green"); bi <- to_idx(blue, "blue")
+  if (default_groups) {
+    ri <- as.integer(red); gi <- as.integer(green); bi <- as.integer(blue)
+  } else {
+    ri <- to_idx(red, "red"); gi <- to_idx(green, "green"); bi <- to_idx(blue, "blue")
+  }
 
   chan <- function(idx) {
-    m <- if (length(idx) == 1L) cb$data[, , idx] else
-      apply(cb$data[, , idx, drop = FALSE], c(1, 2), mean, na.rm = TRUE)
-    .stretch(m, stretch, probs)$values
+    values <- do.call(cbind, lapply(idx, function(b) as.vector(.cube_band(cb, b))))
+    if (is.null(dim(values))) dim(values) <- c(length(values), 1L)
+    contributors <- rowSums(is.finite(values))
+    aggregate <- rowMeans(values, na.rm = TRUE)
+    aggregate[contributors == 0L] <- NA_real_
+    if (identical(missing, "propagate")) {
+      aggregate[contributors != length(idx)] <- NA_real_
+    }
+    list(
+      values = matrix(aggregate, nrow = d[1L], ncol = d[2L]),
+      contributors = list(
+        selected_bands = length(idx),
+        minimum = as.integer(min(contributors)),
+        maximum = as.integer(max(contributors)),
+        complete_pixels = as.integer(sum(contributors == length(idx))),
+        no_contributor_pixels = as.integer(sum(contributors == 0L))
+      )
+    )
   }
-  R <- chan(ri); G <- chan(gi); B <- chan(bi)
+  raw <- list(red = chan(ri), green = chan(gi), blue = chan(bi))
+  common_valid <- is.finite(raw$red$values) & is.finite(raw$green$values) &
+    is.finite(raw$blue$values)
+  if (!any(common_valid)) {
+    cli::cli_abort("Fusion has no pixels with a finite contribution in all three channels.")
+  }
+  for (nm in names(raw)) raw[[nm]]$values[!common_valid] <- NA_real_
 
-  df <- .as_long(R, "r")
-  df$g <- as.vector(G)
-  df$b <- as.vector(B)
-  df$hex <- grDevices::rgb(
-    ifelse(is.finite(df$r), df$r, 0),
-    ifelse(is.finite(df$g), df$g, 0),
-    ifelse(is.finite(df$b), df$b, 0)
-  )
+  enhancement <- lapply(raw, function(channel) {
+    .stretch(channel$values, stretch, probs, display_limits)
+  })
 
-  wl <- cb$wavelengths
-  ggplot2::ggplot(df, ggplot2::aes(x = .data$x, y = .data$y, fill = .data$hex)) +
-    ggplot2::geom_raster(interpolate = TRUE) +
-    ggplot2::scale_fill_identity() +
+  df <- .as_long(enhancement$red$values, "r")
+  df$g <- as.vector(enhancement$green$values)
+  df$b <- as.vector(enhancement$blue$values)
+  df$raw_r <- as.vector(raw$red$values)
+  df$raw_g <- as.vector(raw$green$values)
+  df$raw_b <- as.vector(raw$blue$values)
+  valid_rgb <- is.finite(df$r) & is.finite(df$g) & is.finite(df$b)
+  df$hex <- NA_character_
+  if (any(valid_rgb)) {
+    rgb_domain <- enhancement$red$display_limits
+    rr <- .rescale_affine(df$r[valid_rgb], rgb_domain)
+    gg <- .rescale_affine(df$g[valid_rgb], rgb_domain)
+    bb <- .rescale_affine(df$b[valid_rgb], rgb_domain)
+    df$hex[valid_rgb] <- grDevices::rgb(
+      pmin(pmax(rr, 0), 1), pmin(pmax(gg, 0), 1), pmin(pmax(bb, 0), 1)
+    )
+  }
+
+  describe_group <- function(name, idx) {
+    if (cb$has_wavelengths) {
+      sprintf("%s bands %s (%g-%g nm)", name, paste(idx, collapse = ","),
+              min(cb$coordinates[idx]), max(cb$coordinates[idx]))
+    } else {
+      sprintf("%s bands %s", name, paste(idx, collapse = ","))
+    }
+  }
+  subtitle <- paste(describe_group("R", ri), describe_group("G", gi),
+                    describe_group("B", bi), sep = " | ")
+  channel_captions <- vapply(c("red", "green", "blue"), function(nm) {
+    paste0(toupper(substr(nm, 1, 1)), ": ",
+           .stretch_caption(enhancement[[nm]], value_label = value_label))
+  }, character(1))
+  caption <- .wrap_caption(paste(
+    paste(channel_captions, collapse = "; "),
+    sprintf("RGB construction maps displayed channels from [%s, %s] to [0, 1]",
+            format(enhancement$red$display_limits[1L], digits = 4),
+            format(enhancement$red$display_limits[2L], digits = 4)),
+    sprintf("missing=%s", missing), sep = "; "
+  ))
+
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$x, y = .data$y, fill = .data$hex)) +
+    ggplot2::geom_raster(interpolate = interpolate) +
+    ggplot2::scale_fill_identity(na.value = "transparent") +
     ggplot2::scale_y_reverse(expand = c(0, 0)) +
     ggplot2::scale_x_continuous(expand = c(0, 0)) +
     ggplot2::coord_fixed() +
     ggplot2::labs(
       title = "Spectral fusion",
-      subtitle = sprintf("R %.0f-%.0f nm | G %.0f-%.0f nm | B %.0f-%.0f nm",
-                         min(wl[ri]), max(wl[ri]), min(wl[gi]), max(wl[gi]),
-                         min(wl[bi]), max(wl[bi])),
-      caption = paste0(.stretch_caption(stretch, NULL, probs),
-                       "; channels stretched independently")
+      subtitle = subtitle,
+      caption = caption
     ) +
     hsa_theme()
+
+  selection_record <- function(requested, idx) {
+    list(requested = requested, indices = idx, coordinates = cb$coordinates[idx])
+  }
+  .attach_provenance(
+    p, cb,
+    quantity = list(name = "mean selected-band RGB fusion", value_label = value_label),
+    selection = list(
+      by = if (default_groups) "index" else by,
+      default = default_groups,
+      red = selection_record(if (default_groups) ri else red, ri),
+      green = selection_record(if (default_groups) gi else green, gi),
+      blue = selection_record(if (default_groups) bi else blue, bi)
+    ),
+    missingness = list(
+      strategy = missing,
+      common_valid_pixels = as.integer(sum(common_valid)),
+      excluded_pixels = as.integer(sum(!common_valid)),
+      contributors = lapply(raw, `[[`, "contributors")
+    ),
+    enhancement = lapply(enhancement, .enhancement_record),
+    palette = "RGB",
+    interpolation = interpolate,
+    value_label = value_label
+  )
 }
 
 
 # Caption text stating exactly what enhancement was applied. Kept in one place
 # so no rendering can quietly omit it.
-.stretch_caption <- function(method, limits = NULL, probs = c(0.02, 0.98)) {
-  switch(method,
-    none = "No contrast stretch applied",
-    range = if (is.null(limits) || anyNA(limits)) "Linear stretch over the full data range"
-            else sprintf("Linear stretch over [%.4g, %.4g]", limits[1], limits[2]),
-    percentile = if (is.null(limits) || anyNA(limits))
-      sprintf("Linear stretch between the %.0f%% and %.0f%% percentiles",
-              probs[1] * 100, probs[2] * 100)
-    else
-      sprintf("Linear stretch between the %.0f%% and %.0f%% percentiles [%.4g, %.4g]",
-              probs[1] * 100, probs[2] * 100, limits[1], limits[2])
-  )
+.stretch_caption <- function(method, limits = NULL, probs = c(0.02, 0.98),
+                             value_label = "input value") {
+  if (is.list(method)) {
+    record <- method
+  } else {
+    old_limits <- limits
+    if (identical(method, "none") &&
+        (is.null(old_limits) || length(old_limits) != 2L || anyNA(old_limits))) {
+      old_limits <- c(0, 1)
+    }
+    if (!identical(method, "none") &&
+        (is.null(old_limits) || length(old_limits) != 2L || anyNA(old_limits))) {
+      return(switch(method,
+        range = "Linear stretch over the full finite data range",
+        percentile = sprintf(
+          "Linear stretch between the %.0f%% and %.0f%% percentiles",
+          probs[1L] * 100, probs[2L] * 100
+        ),
+        none = "No contrast stretch applied"
+      ))
+    }
+    record <- list(
+      requested_method = method,
+      effective_method = method,
+      limits = old_limits,
+      probs = probs,
+      fallback = NULL,
+      display_limits = if (identical(method, "none")) old_limits else c(0, 1)
+    )
+  }
+  fmt <- function(x) format(x, digits = 4, trim = TRUE)
+  lim <- record$limits
+  if (identical(record$effective_method, "none")) {
+    return(sprintf(
+      "No contrast stretch applied; raw %s preserved; fixed display domain [%s, %s]",
+      value_label, fmt(record$display_limits[1L]), fmt(record$display_limits[2L])
+    ))
+  }
+  if (identical(record$requested_method, "percentile") &&
+      identical(record$effective_method, "range")) {
+    constant_note <- if (lim[1L] == lim[2L]) {
+      "; constant data map to the dark endpoint"
+    } else {
+      ""
+    }
+    return(sprintf(
+      "Requested %.0f-%.0f%% percentile stretch collapsed; effective range stretch [%s, %s] to [0, 1]%s",
+      record$probs[1L] * 100, record$probs[2L] * 100,
+      fmt(lim[1L]), fmt(lim[2L]), constant_note
+    ))
+  }
+  if (identical(record$effective_method, "percentile")) {
+    return(sprintf(
+      "Linear %.0f-%.0f%% percentile stretch of %s [%s, %s] to [0, 1]",
+      record$probs[1L] * 100, record$probs[2L] * 100, value_label,
+      fmt(lim[1L]), fmt(lim[2L])
+    ))
+  }
+  suffix <- if (lim[1L] == lim[2L]) "; constant data map to the dark endpoint" else ""
+  sprintf("Linear range stretch of %s [%s, %s] to [0, 1]%s",
+          value_label, fmt(lim[1L]), fmt(lim[2L]), suffix)
+}
+
+.wrap_caption <- function(text, width = 110L) {
+  paste(strwrap(text, width = width, simplify = TRUE), collapse = "\n")
 }
 
 
@@ -257,6 +501,10 @@ hsa_fusion <- function(cube, red = NULL, green = NULL, blue = NULL,
 #'
 #' @export
 hsa_demo_cube <- function(rows = 48L, cols = 64L, bands = 24L, seed = 42L) {
+  rows <- .validate_count(rows, "rows")
+  cols <- .validate_count(cols, "cols")
+  bands <- .validate_count(bands, "bands")
+  seed <- .validate_count(seed, "seed", minimum = 0L)
   if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
     old <- get(".Random.seed", envir = globalenv(), inherits = FALSE)
     on.exit(assign(".Random.seed", old, envir = globalenv()), add = TRUE)
