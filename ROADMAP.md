@@ -1,8 +1,8 @@
 This roadmap turns the 2026-09-10 audit of commit `1df0bdd` into a delivery plan for trustworthy hyperspectral figures and stronger analytical validation. The immediate objective is to correct the four existing compositions, make their transformations inspectable, and establish evidence that their outputs are scientifically interpretable.
 
-The audit and this roadmap are complete. All implementation milestones below are **Not Started**. The proposed next release is **0.2.0**, because explicit missing-data and display-domain contracts may change visible results and add arguments. This is a planning target, not a published version or a delivery commitment.
+Implementation has produced a **0.2.0 release candidate** on the feature branch. Core numerical contracts and experimental APIs have passed scoped reviews; publication checks and the final release-evidence gate are being completed. The status tables below track delivery against the original specification. No release has been published.
 
-Detailed definitions, recommended behaviour, numerical examples, and test fixtures are in [the analysis and validation plan](planning/analysis-and-validation.md). Public argument names mentioned in that document are proposals, not existing APIs.
+Detailed definitions, recommended behaviour, numerical examples, and test fixtures are in [the analysis and validation plan](planning/analysis-and-validation.md). Adopted public arguments are implemented and documented; [decisions](planning/evidence/decisions.md), [audit closure](planning/evidence/audit-resolution.md), [sampling evidence](planning/evidence/sampling.md) and [performance evidence](planning/evidence/performance.md) record the outcome.
 
 **Baseline and project direction**
 
@@ -18,20 +18,20 @@ The strategic change is to move spectral gradient fields and spectral quartiles 
 | Next: M3–M5 | Trustworthy diagnostics, reproducible figures, and a releasable package/site | All audit defects closed, rendering checks passing, memory benchmark recorded, package/site checks passing |
 | Later: E1–E3 | Better comparisons and new spectral compositions | Each experiment proves its scientific meaning and user value before entering the release scope |
 
-**Capacity, ownership, and sequencing**
+**Original capacity assumptions and delivery status**
 
-Estimates assume one maintainer familiar with R and ggplot2, plus access to a domain reviewer for the scientific contracts. They include implementation, focused tests, and accompanying documentation. They exclude acquisition of recordings and vendor SDK troubleshooting. Owners below are roles to be assigned, not claims that a particular person has accepted work.
+The original planning estimates assumed one maintainer familiar with R and ggplot2, plus access to a domain reviewer for the scientific contracts. They include implementation, focused tests, and accompanying documentation. They exclude acquisition of recordings and vendor SDK troubleshooting. Owners below are roles to be assigned, not claims that a particular person has accepted work.
 
-The stabilization estimate is **15–25 focused engineering days**, or **18–30 days with a 20% contingency**. At three focused days per week, that is approximately **6–10 calendar weeks**. Actual scheduling should follow available capacity. Re-estimate after M0 and after any compatibility decision changes scope. Later experiments have separate estimates and are not included in these totals.
+The original stabilization estimate was **15–25 focused engineering days**, or **18–30 days with a 20% contingency**. At three focused days per week, that is approximately **6–10 calendar weeks**. These were capacity hypotheses, not measured implementation time; future scheduling should use available capacity and the evidence collected here. Later experiments have separate estimates and are not included in these totals.
 
 | Milestone | Owner | Effort | Dependencies | Status |
 |---|---|---:|---|---|
-| M0 — Record contracts and executable regression cases | Maintainer, with scientific review | 1–2 days | Audit baseline | Not Started |
-| M1 — Validate cubes and preserve invalidity | Maintainer | 3–5 days | M0 | Not Started |
-| M2 — Correct image calculations, geometry, and enhancement | Maintainer | 4–6 days | M1 | Not Started |
-| M3 — Correct density diagnostics and expose provenance | Maintainer, with scientific review | 3–5 days | M1; M2 for shared enhancement metadata | Not Started |
-| M4 — Bound memory, enforce checks, and repair documentation/site | Maintainer; shared-workflow owner where needed | 3–5 days | M2–M3 for final baselines | Not Started |
-| M5 — Validate and prepare the release candidate | Maintainer | 1–2 days | M0–M4 | Not Started |
+| M0 — Record contracts and executable regression cases | Maintainer, with scientific review | 1–2 days | Audit baseline | Done |
+| M1 — Validate cubes and preserve invalidity | Maintainer | 3–5 days | M0 | Done |
+| M2 — Correct image calculations, geometry, and enhancement | Maintainer | 4–6 days | M1 | Done |
+| M3 — Correct density diagnostics and expose provenance | Maintainer, with scientific review | 3–5 days | M1; M2 for shared enhancement metadata | Done |
+| M4 — Bound memory, enforce checks, and repair documentation/site | Maintainer; shared-workflow owner where needed | 3–5 days | M2–M3 for final baselines | In Progress |
+| M5 — Validate and prepare the release candidate | Maintainer | 1–2 days | M0–M4 | In Progress |
 
 The critical sequence is **input/validity contract → calculations and display domains → trustworthy diagnostics → release evidence**. The gallery asset fix can be prepared after M0 without waiting for numerical changes; regenerated figures must use the final corrected implementation. CI test structure can also be prepared early, while final thresholds and snapshots wait for corrected behaviour.
 
@@ -180,13 +180,13 @@ Each unit should include its own focused regression tests and relevant documenta
 
 **Later analytical and product improvements**
 
-These are discovery proposals. They should not extend the stabilization release unless the maintainer deliberately trades away other work.
+The requested full implementation evaluated these initiatives after the core contracts and independent definitions were stable. The candidate includes E1/E2 as explicitly limited descriptive APIs and resolves E3 with the exact fixed-limit path; no approximate quantile mode is introduced.
 
 | Initiative | Purpose and proposed deliverable | Effort hypothesis | Dependency | Success criterion | Status |
 |---|---|---:|---|---|---|
-| E1 — Comparable spectral summaries | Evaluate total variation per wavelength span, explicit common-grid comparisons, and shared display domains across recordings | 3–5 days | M1–M5 | Synthetic examples establish units, sampling assumptions, and failure cases; no claim of sampling invariance without evidence | Not Started |
-| E2 — New compositions | Prototype wavelength-target mandalas, a precisely defined spectral-gradient composition, and spectral quartile displays | 5–10 days | M1–M5; define quantities first | Each candidate adds information requiring the spectral dimension and passes numerical/geometry tests; choose which merit public APIs | Not Started |
-| E3 — Larger-data diagnostic path | Evaluate chunked exact histograms with fixed limits; consider explicit reproducible approximate quantiles only if measured need remains | 3–5 days | M4 benchmarks | Demonstrated memory improvement with documented exactness or measured approximation error and sampling provenance | Not Started |
+| E1 — Comparable spectral summaries | Evaluate total variation per wavelength span, explicit common-grid comparisons, and shared display domains across recordings | 3–5 days | M1–M5 | Synthetic examples establish units, sampling assumptions, and failure cases; no claim of sampling invariance without evidence | Done |
+| E2 — New compositions | Prototype wavelength-target mandalas, a precisely defined spectral-gradient composition, and spectral quartile displays | 5–10 days | M1–M5; define quantities first | Each candidate defines its multispectral quantity, discloses degenerate single-band cases, and passes numerical/geometry tests; export decisions are recorded | Done |
+| E3 — Larger-data diagnostic path | Evaluate chunked exact histograms with fixed limits; consider explicit reproducible approximate quantiles only if measured need remains | 3–5 days | M4 benchmarks | Demonstrated memory improvement with documented exactness or measured approximation error and sampling provenance | Done |
 
 For E2, define whether “gradient” means differentiation along wavelength or a spatial gradient of a spectral summary before designing a figure. For “quartiles”, define whether the population is wavelengths within a pixel or pixels within a band. These are different quantities and must not share an ambiguous label.
 
@@ -200,7 +200,7 @@ For E2, define whether “gradient” means differentiation along wavelength or 
 | Exact quantiles require memory proportional to valid observations | Default automatic limits can remain expensive on large cubes | Improve avoidable copies first; document exact cost; add an explicit approximate path only after E3 evidence |
 | Snapshot differences across platforms/devices | Fragile visual tests can become routinely ignored | Use numerical scale/geometry assertions first and a small, controlled snapshot set |
 | No distributable real fixture for an instrument | Instrument integration cannot be independently reproduced in CI | Use realistic synthetic fixtures; run optional local integration checks and report their coverage separately |
-| Scope growth from new compositions or a broad refactor | Correctness fixes slip | Keep E1–E3 outside stabilization; extract only calculation helpers required by the tests and current functions |
+| Scope growth from new compositions or a broad refactor | Correctness fixes slip | Include only the reviewed descriptive extensions requested here; extract calculation helpers required by the numerical contracts |
 
 Review progress after each review unit and at least weekly during implementation. Update status from **Not Started** to **In Progress**, **Blocked**, or **Done**, with the evidence or dependency beside it. A test passing because it reproduces the implementation's own calculation is insufficient evidence. Reopen a closed defect if later rendering or integration checks invalidate its contract.
 
