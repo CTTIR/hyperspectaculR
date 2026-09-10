@@ -57,7 +57,7 @@ check_markdown <- function(path, root) {
 source_markdown <- c("README.md", "ROADMAP.md",
                      list.files("planning", "[.]md$", recursive = TRUE, full.names = TRUE))
 source_links <- sum(vapply(source_markdown, check_markdown, integer(1), root = "."))
-copied_markdown <- file.path(site, source_markdown[-1L])
+copied_markdown <- file.path(site, source_markdown)
 if (any(!file.exists(copied_markdown))) {
   cli::cli_abort("Copy public evidence before checking the built site.")
 }

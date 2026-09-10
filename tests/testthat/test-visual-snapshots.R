@@ -1,5 +1,6 @@
 # Numeric contracts remain primary. Release validation sets both flags below;
 # old-ggplot compatibility intentionally disables only this rendering baseline.
+# Announce every expected file before a gate can skip, so testthat retains it.
 visual_snapshots_enabled <- function() {
   if (identical(Sys.getenv("HSA_REQUIRE_VDIFFR"), "1")) {
     if (!requireNamespace("vdiffr", quietly = TRUE)) {
@@ -33,18 +34,22 @@ snapshot_theme <- function(plot) {
 }
 
 test_that("transparent scalar images retain their rendering", {
+  testthat::announce_snapshot_file(name = "transparent-mandala.svg")
   visual_snapshots_enabled()
   vdiffr::expect_doppelganger("transparent mandala", snapshot_theme(
     hsa_mandala(visual_fixture(), n_rings = 4, interpolate = FALSE)))
 })
 
 test_that("fusion retains transparent pixels and compact labels", {
+  testthat::announce_snapshot_file(name = "grouped-fusion.svg")
   visual_snapshots_enabled()
   vdiffr::expect_doppelganger("grouped fusion", snapshot_theme(
     hsa_fusion(visual_fixture(), interpolate = FALSE)))
 })
 
 test_that("irregular density and shared quartile geometry retain their rendering", {
+  testthat::announce_snapshot_file(name = "irregular-density.svg")
+  testthat::announce_snapshot_file(name = "shared-quartile-panels.svg")
   visual_snapshots_enabled()
   vdiffr::expect_doppelganger("irregular density", snapshot_theme(
     hsa_spectral_density(visual_fixture(), nbins = 8, show_limits = TRUE)))

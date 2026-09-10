@@ -8,7 +8,13 @@ public_files <- unlist(lapply(public_directories, function(directory) {
   list.files(directory, pattern = "[.](R|Rmd|md|csv|txt|svg)$",
              recursive = TRUE, full.names = TRUE)
 }), use.names = FALSE)
-public_files <- c("ROADMAP.md", public_files)
+readme_images <- c("man/figures/logo.svg", paste0(
+  "man/figures/gallery-", c("mandala", "flux", "fusion", "density", "gradient", "quartiles"),
+  ".png"
+))
+public_files <- c("ROADMAP.md", "README.md",
+                  ".github/workflows/minimum-compatibility.yaml", readme_images,
+                  public_files)
 for (path in public_files) {
   target <- file.path(site, path)
   dir.create(dirname(target), recursive = TRUE, showWarnings = FALSE)
