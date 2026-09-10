@@ -249,6 +249,9 @@
 #'   Legend labels are returned to raw counts or shares.
 #' @param normalise `"none"` (default) displays raw counts; `"band"` displays
 #'   shares of the retained count in each band. Empty bands remain missing.
+#' @param probs Two increasing finite probabilities between zero and one for
+#'   the global raw eligible-value references when `show_limits = TRUE`.
+#'   These do not set the histogram range or image enhancement limits.
 #' @param show_limits Logical. Draw global raw eligible-value percentiles using
 #'   `probs`. These references include finite observations outside `limits` and
 #'   are separate from image enhancement limits. Default `FALSE`.

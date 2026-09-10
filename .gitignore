@@ -20,3 +20,9 @@ Thumbs.db
 # Clinical renders are for local review only and must never be committed.
 showcase/clinical/
 figure/
+# Optional laboratory integration is local; the public gallery is synthetic.
+showcase/laboratory/
+# Generated local site, favicons and R device output.
+/docs/
+/pkgdown/favicon/
+Rplots.pdf

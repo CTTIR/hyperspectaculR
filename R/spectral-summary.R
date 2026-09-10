@@ -261,7 +261,7 @@ hsa_spectral_quartiles <- function(cube, palette = "magma",
     missingness = list(policy = "propagate", valid_pixels = as.integer(sum(valid)),
                        excluded_pixels = as.integer(sum(!valid)),
                        shared_panel_validity = TRUE,
-                       panel_valid_pixels = setNames(rep(as.integer(sum(valid)), 3L), panel_labels)),
+                       panel_valid_pixels = stats::setNames(rep(as.integer(sum(valid)), 3L), panel_labels)),
     enhancement = enhancement, palette = palette,
     interpolation = interpolate, value_label = value_label
   )

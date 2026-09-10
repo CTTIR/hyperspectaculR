@@ -15,14 +15,26 @@ home:
 reference:
   - title: Compositions
     desc: >
-      Each of these needs the spectral axis: none could be produced from a
-      single wavelength. Every one returns a ggplot and captions the contrast
-      stretch it applied.
+      Compositions use measured spectral bands and disclose their selections
+      and display domains. Supported singleton or repeated selections can
+      reduce to a single-band result.
     contents:
       - hsa_mandala
       - hsa_spectral_flux
       - hsa_fusion
+
+  - title: Descriptive summaries
+    desc: >
+      Exact spectral density and experimental RMS slope and equal-band
+      quartiles; descriptive quantities with stated sampling assumptions.
+    contents:
       - hsa_spectral_density
+      - hsa_spectral_gradient
+      - hsa_spectral_quartiles
+
+  - title: Rendering provenance
+    contents:
+      - hsa_provenance
 
   - title: Appearance
     desc: >
