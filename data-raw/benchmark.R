@@ -38,8 +38,10 @@ profile_call <- function(expr) {
   timing <- system.time(value <- force(expr), gcFirst = FALSE)
   Rprofmem(NULL)
   allocations <- suppressWarnings(as.numeric(sub(" .*", "", readLines(profile))))
+  allocations <- allocations[is.finite(allocations)]
   list(value = value, elapsed = unname(timing["elapsed"]),
-       allocated_mib = sum(allocations, na.rm = TRUE) / 2^20)
+       allocated_mib = sum(allocations) / 2^20,
+       largest_allocation_mib = max(c(0, allocations)) / 2^20)
 }
 
 pdf_file <- tempfile(fileext = ".pdf")
@@ -62,7 +64,9 @@ for (i in seq_len(3L)) {
   results[[i]] <- data.frame(
     repetition = i, prepare_seconds = preparation$elapsed,
     prepare_allocated_mib = preparation$allocated_mib,
-    draw_seconds = drawing$elapsed, draw_allocated_mib = drawing$allocated_mib
+    draw_seconds = drawing$elapsed, draw_allocated_mib = drawing$allocated_mib,
+    prepare_largest_allocation_mib = preparation$largest_allocation_mib,
+    draw_largest_allocation_mib = drawing$largest_allocation_mib
   )
   rm(preparation, drawing)
 }
