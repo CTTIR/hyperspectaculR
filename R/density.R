@@ -102,6 +102,8 @@
 }
 
 .density_legend_labels <- function(transform, normalise) {
+  force(transform)
+  force(normalise)
   function(x) {
     raw <- if (identical(transform, "log1p")) expm1(x) else x
     if (identical(normalise, "band")) {
@@ -112,192 +114,24 @@
   }
 }
 
-.density_number <- function(x) {
-  scientific <- any(abs(x) >= 1e6 | (x != 0 & abs(x) < 1e-4))
-  format(x, digits = 6, trim = TRUE, scientific = scientific)
-}
+.render_density <- function(data, palette, display_domain, normalise,
+                            transform, overlay, show_limits,
+                            reference_values, subtitle, x_label, y_label,
+                            caption) {
+  force(data)
+  force(palette)
+  force(display_domain)
+  force(normalise)
+  force(transform)
+  force(overlay)
+  force(show_limits)
+  force(reference_values)
+  force(subtitle)
+  force(x_label)
+  force(y_label)
+  force(caption)
 
-.density_percent <- function(x) {
-  format(100 * x, digits = 6, trim = TRUE, scientific = FALSE)
-}
-
-
-#' Spectral Density
-#'
-#' Draws the joint distribution of input values and spectral coordinates as an
-#' exact two-dimensional histogram. A binned mean and binned 5--95% pixel
-#' envelope are calculated from the retained histogram counts.
-#'
-#' Values outside `limits` are dropped rather than clipped into the end bins.
-#' Masks and nonfinite values are excluded. The overlay describes the retained
-#' pixel distribution; it is not a confidence interval.
-#'
-#' @inheritParams hsa_mandala
-#' @param nbins Number of value bins. Must be an integer of at least two.
-#'   Default `128`.
-#' @param limits Numeric length-two value range to bin over. `NULL` (default)
-#'   uses the 0.1st and 99.9th percentiles of all finite eligible values.
-#' @param transform Display transform: `"log1p"` (default) or `"identity"`.
-#'   Legend labels are returned to raw counts or shares.
-#' @param normalise `"none"` (default) displays raw counts; `"band"` displays
-#'   shares of the retained count in each band. Empty bands remain missing.
-#' @param show_limits Logical. Draw global raw eligible-value percentiles using
-#'   `probs`. These references include finite observations outside `limits` and
-#'   are separate from image enhancement limits. Default `FALSE`.
-#'
-#' @return A \pkg{ggplot2} object with compact original-rendering provenance.
-#'
-#' @examples
-#' cube <- hsa_demo_cube()
-#' hsa_spectral_density(cube)
-#'
-#' @export
-hsa_spectral_density <- function(cube, nbins = 128L, limits = NULL,
-                                 transform = c("log1p", "identity"),
-                                 normalise = c("none", "band"),
-                                 palette = "mako", show_limits = FALSE,
-                                 probs = c(0.02, 0.98),
-                                 value_label = "input value") {
-  cb <- .as_cube(cube)
-  nbins <- .validate_count(nbins, "nbins", minimum = 2L)
-  transform <- match.arg(transform)
-  normalise <- match.arg(normalise)
-  show_limits <- .validate_flag(show_limits, "show_limits")
-  probs <- .validate_probs(probs)
-  value_label <- .validate_value_label(value_label)
-  explicit_limits <- !is.null(limits)
-  if (explicit_limits) limits <- .density_limits(limits)
-
-  dimensions <- dim(cb$data)
-  nb <- dimensions[3L]
-  eligible_per_band <- if (is.null(cb$mask)) {
-    prod(dimensions[1:2])
-  } else {
-    sum(cb$mask)
-  }
-  needs_global <- !explicit_limits || show_limits
-  buffers <- NULL
-  finite_population <- NULL
-  quantiles <- NULL
-  range_fallback <- NULL
-  range_probs <- if (explicit_limits) NULL else c(0.001, 0.999)
-
-  if (needs_global) {
-    buffers <- vector("list", nb)
-    for (band in seq_len(nb)) {
-      values <- as.vector(.cube_band(cb, band))
-      buffers[[band]] <- values[is.finite(values)]
-    }
-    finite_population <- unlist(buffers, use.names = FALSE)
-    if (!length(finite_population)) {
-      cli::cli_abort(paste(
-        "The cube contains no finite eligible values",
-        "(no finite values after mask exclusion)."
-      ))
-    }
-    requested_probs <- sort(unique(c(
-      if (!explicit_limits) range_probs,
-      if (show_limits) probs
-    )))
-    quantiles <- unname(stats::quantile(
-      finite_population, probs = requested_probs, type = 7L, names = FALSE
-    ))
-    take_quantile <- function(probability) {
-      quantiles[match(probability, requested_probs)]
-    }
-
-    if (!explicit_limits) {
-      limits <- vapply(range_probs, take_quantile, numeric(1))
-      if (limits[1L] == limits[2L]) {
-        finite_range <- range(finite_population)
-        if (finite_range[1L] < finite_range[2L]) {
-          limits <- finite_range
-          range_fallback <- paste(
-            "automatic 0.1-99.9% limits collapsed; used the full finite range"
-          )
-        } else {
-          limits <- .density_constant_range(finite_range[1L], nbins)
-          range_fallback <- paste(
-            "automatic 0.1-99.9% limits collapsed on constant data;",
-            "used a finite padded interval"
-          )
-        }
-      }
-    }
-    reference_values <- if (show_limits) {
-      vapply(probs, take_quantile, numeric(1))
-    } else {
-      numeric()
-    }
-  } else {
-    reference_values <- numeric()
-  }
-
-  breaks <- .density_breaks(limits, nbins)
-  centres <- .density_midpoint(breaks[-length(breaks)], breaks[-1L])
-  coordinate_geometry <- .density_coordinate_edges(cb$coordinates)
-
-  H <- matrix(0, nrow = nbins, ncol = nb)
-  below <- above <- nonfinite <- finite <- kept <- numeric(nb)
-  eligible <- rep(eligible_per_band, nb)
-  for (band in seq_len(nb)) {
-    if (needs_global) {
-      values <- buffers[[band]]
-    } else {
-      band_values <- as.vector(.cube_band(cb, band))
-      values <- band_values[is.finite(band_values)]
-    }
-    finite[band] <- length(values)
-    nonfinite[band] <- eligible[band] - finite[band]
-    below[band] <- sum(values < limits[1L])
-    above[band] <- sum(values > limits[2L])
-    index <- .bincode(values, breaks, right = TRUE, include.lowest = TRUE)
-    index <- index[!is.na(index)]
-    kept[band] <- length(index)
-    if (length(index)) H[, band] <- tabulate(index, nbins = nbins)
-  }
-  if (!sum(finite)) {
-    cli::cli_abort(paste(
-      "The cube contains no finite eligible values",
-      "(no finite values after mask exclusion)."
-    ))
-  }
-  if (!sum(kept)) {
-    cli::cli_abort(
-      "No values: no finite eligible values fell inside {.arg limits}."
-    )
-  }
-  if (any(finite != below + kept + above) ||
-      any(eligible != finite + nonfinite)) {
-    cli::cli_abort("Internal density accounting failed.")
-  }
-
-  shares <- matrix(NA_real_, nrow = nbins, ncol = nb)
-  populated <- kept > 0
-  shares[, populated] <- sweep(H[, populated, drop = FALSE], 2,
-                               kept[populated], "/")
-  displayed <- if (identical(normalise, "band")) shares else H
-  density <- if (identical(transform, "log1p")) log1p(displayed) else displayed
-  display_domain <- c(0, max(density, na.rm = TRUE))
-  overlay <- .density_overlay(H, centres, limits, cb$coordinates)
-
-  df <- data.frame(
-    band = rep(seq_len(nb), each = nbins),
-    coordinate = rep(cb$coordinates, each = nbins),
-    wavelength = rep(cb$coordinates, each = nbins),
-    xmin = rep(coordinate_geometry$edges[-length(coordinate_geometry$edges)],
-               each = nbins),
-    xmax = rep(coordinate_geometry$edges[-1L], each = nbins),
-    value = rep(centres, times = nb),
-    reflectance = rep(centres, times = nb),
-    ymin = rep(breaks[-length(breaks)], times = nb),
-    ymax = rep(breaks[-1L], times = nb),
-    count = as.vector(H),
-    share = as.vector(shares),
-    density = as.vector(density)
-  )
-
-  plot <- ggplot2::ggplot(df) +
+  plot <- ggplot2::ggplot(data) +
     ggplot2::geom_rect(
       ggplot2::aes(xmin = .data$xmin, xmax = .data$xmax,
                    ymin = .data$ymin, ymax = .data$ymax,
@@ -359,6 +193,211 @@ hsa_spectral_density <- function(cube, nbins = 128L, limits = NULL,
     )
   }
 
+  plot +
+    ggplot2::scale_x_continuous(expand = c(0, 0)) +
+    ggplot2::scale_y_continuous(expand = c(0, 0)) +
+    ggplot2::coord_cartesian(expand = FALSE) +
+    ggplot2::labs(
+      title = "Spectral density", subtitle = subtitle,
+      x = x_label, y = y_label, caption = caption
+    ) +
+    hsa_theme() +
+    ggplot2::theme(
+      axis.title = ggplot2::element_text(colour = "#E8E8EC", size = 9),
+      axis.text = ggplot2::element_text(colour = "#9A9AA4", size = 8),
+      axis.line = ggplot2::element_line(colour = "#3A3A44", linewidth = 0.3)
+    )
+}
+
+.density_number <- function(x) {
+  scientific <- any(abs(x) >= 1e6 | (x != 0 & abs(x) < 1e-4))
+  format(x, digits = 6, trim = TRUE, scientific = scientific)
+}
+
+.density_percent <- function(x) {
+  format(100 * x, digits = 6, trim = TRUE, scientific = FALSE)
+}
+
+.density_finite_values <- function(cube) {
+  force(cube)
+  nb <- dim(cube$data)[3L]
+  buffers <- vector("list", nb)
+  for (band in seq_len(nb)) {
+    values <- as.vector(.cube_band(cube, band))
+    buffers[[band]] <- values[is.finite(values)]
+  }
+  unlist(buffers, use.names = FALSE)
+}
+
+
+#' Spectral Density
+#'
+#' Draws the joint distribution of input values and spectral coordinates as an
+#' exact two-dimensional histogram. A binned mean and binned 5--95% pixel
+#' envelope are calculated from the retained histogram counts.
+#'
+#' Values outside `limits` are dropped rather than clipped into the end bins.
+#' Masks and nonfinite values are excluded. The overlay describes the retained
+#' pixel distribution; it is not a confidence interval.
+#'
+#' @inheritParams hsa_mandala
+#' @param nbins Number of value bins. Must be an integer of at least two.
+#'   Default `128`.
+#' @param limits Numeric length-two value range to bin over. `NULL` (default)
+#'   uses the 0.1st and 99.9th percentiles of all finite eligible values.
+#' @param transform Display transform: `"log1p"` (default) or `"identity"`.
+#'   Legend labels are returned to raw counts or shares.
+#' @param normalise `"none"` (default) displays raw counts; `"band"` displays
+#'   shares of the retained count in each band. Empty bands remain missing.
+#' @param show_limits Logical. Draw global raw eligible-value percentiles using
+#'   `probs`. These references include finite observations outside `limits` and
+#'   are separate from image enhancement limits. Default `FALSE`.
+#'
+#' @return A \pkg{ggplot2} object with compact original-rendering provenance.
+#'
+#' @examples
+#' cube <- hsa_demo_cube()
+#' hsa_spectral_density(cube)
+#'
+#' @export
+hsa_spectral_density <- function(cube, nbins = 128L, limits = NULL,
+                                 transform = c("log1p", "identity"),
+                                 normalise = c("none", "band"),
+                                 palette = "mako", show_limits = FALSE,
+                                 probs = c(0.02, 0.98),
+                                 value_label = "input value") {
+  cb <- .as_cube(cube)
+  nbins <- .validate_count(nbins, "nbins", minimum = 2L)
+  transform <- match.arg(transform)
+  normalise <- match.arg(normalise)
+  show_limits <- .validate_flag(show_limits, "show_limits")
+  probs <- .validate_probs(probs)
+  value_label <- .validate_value_label(value_label)
+  explicit_limits <- !is.null(limits)
+  if (explicit_limits) limits <- .density_limits(limits)
+
+  dimensions <- dim(cb$data)
+  nb <- dimensions[3L]
+  eligible_per_band <- if (is.null(cb$mask)) {
+    prod(dimensions[1:2])
+  } else {
+    sum(cb$mask)
+  }
+  needs_global <- !explicit_limits || show_limits
+  finite_population <- NULL
+  quantiles <- NULL
+  global_population <- 0L
+  range_fallback <- NULL
+  range_probs <- if (explicit_limits) NULL else c(0.001, 0.999)
+
+  if (needs_global) {
+    finite_population <- .density_finite_values(cb)
+    if (!length(finite_population)) {
+      cli::cli_abort(paste(
+        "The cube contains no finite eligible values",
+        "(no finite values after mask exclusion)."
+      ))
+    }
+    global_population <- length(finite_population)
+    requested_probs <- sort(unique(c(
+      if (!explicit_limits) range_probs,
+      if (show_limits) probs
+    )))
+    quantiles <- unname(stats::quantile(
+      finite_population, probs = requested_probs, type = 7L, names = FALSE
+    ))
+    take_quantile <- function(probability) {
+      quantiles[match(probability, requested_probs)]
+    }
+
+    if (!explicit_limits) {
+      limits <- vapply(range_probs, take_quantile, numeric(1))
+      if (limits[1L] == limits[2L]) {
+        finite_range <- range(finite_population)
+        if (finite_range[1L] < finite_range[2L]) {
+          limits <- finite_range
+          range_fallback <- paste(
+            "automatic 0.1-99.9% limits collapsed; used the full finite range"
+          )
+        } else {
+          limits <- .density_constant_range(finite_range[1L], nbins)
+          range_fallback <- paste(
+            "automatic 0.1-99.9% limits collapsed on constant data;",
+            "used a finite padded interval"
+          )
+        }
+      }
+    }
+    reference_values <- if (show_limits) {
+      vapply(probs, take_quantile, numeric(1))
+    } else {
+      numeric()
+    }
+    rm(finite_population)
+  } else {
+    reference_values <- numeric()
+  }
+
+  breaks <- .density_breaks(limits, nbins)
+  centres <- .density_midpoint(breaks[-length(breaks)], breaks[-1L])
+  coordinate_geometry <- .density_coordinate_edges(cb$coordinates)
+
+  H <- matrix(0L, nrow = nbins, ncol = nb)
+  below <- above <- nonfinite <- finite <- kept <- numeric(nb)
+  eligible <- rep(eligible_per_band, nb)
+  for (band in seq_len(nb)) {
+    band_values <- as.vector(.cube_band(cb, band))
+    values <- band_values[is.finite(band_values)]
+    finite[band] <- length(values)
+    nonfinite[band] <- eligible[band] - finite[band]
+    below[band] <- sum(values < limits[1L])
+    above[band] <- sum(values > limits[2L])
+    index <- .bincode(values, breaks, right = TRUE, include.lowest = TRUE)
+    index <- index[!is.na(index)]
+    kept[band] <- length(index)
+    if (length(index)) H[, band] <- tabulate(index, nbins = nbins)
+  }
+  if (!sum(finite)) {
+    cli::cli_abort(paste(
+      "The cube contains no finite eligible values",
+      "(no finite values after mask exclusion)."
+    ))
+  }
+  if (!sum(kept)) {
+    cli::cli_abort(
+      "No values: no finite eligible values fell inside {.arg limits}."
+    )
+  }
+  if (any(finite != below + kept + above) ||
+      any(eligible != finite + nonfinite)) {
+    cli::cli_abort("Internal density accounting failed.")
+  }
+
+  shares <- matrix(NA_real_, nrow = nbins, ncol = nb)
+  populated <- kept > 0
+  shares[, populated] <- sweep(H[, populated, drop = FALSE], 2,
+                               kept[populated], "/")
+  displayed <- if (identical(normalise, "band")) shares else H
+  density <- if (identical(transform, "log1p")) log1p(displayed) else displayed
+  display_domain <- c(0, max(density, na.rm = TRUE))
+  overlay <- .density_overlay(H, centres, limits, cb$coordinates)
+
+  df <- data.frame(
+    band = rep(seq_len(nb), each = nbins),
+    coordinate = rep(cb$coordinates, each = nbins),
+    wavelength = rep(cb$coordinates, each = nbins),
+    xmin = rep(coordinate_geometry$edges[-length(coordinate_geometry$edges)],
+               each = nbins),
+    xmax = rep(coordinate_geometry$edges[-1L], each = nbins),
+    value = rep(centres, times = nb),
+    reflectance = rep(centres, times = nb),
+    ymin = rep(breaks[-length(breaks)], times = nb),
+    ymax = rep(breaks[-1L], times = nb),
+    count = as.vector(H),
+    share = as.vector(shares),
+    density = as.vector(density)
+  )
+
   coordinate_description <- if (cb$has_wavelengths) {
     sprintf("%s-%s nm", .density_number(min(cb$coordinates)),
             .density_number(max(cb$coordinates)))
@@ -394,7 +433,7 @@ hsa_spectral_density <- function(cube, nbins = 128L, limits = NULL,
       value_label, .density_percent(probs[1L]), .density_percent(probs[2L]),
       .density_number(reference_values[1L]),
       .density_number(reference_values[2L]),
-      format(length(finite_population), big.mark = ","), coincident
+      format(global_population, big.mark = ","), coincident
     )
   } else {
     NULL
@@ -416,25 +455,15 @@ hsa_spectral_density <- function(cube, nbins = 128L, limits = NULL,
     geometry_note, reference_note
   ), collapse = ". "))
 
-  plot <- plot +
-    ggplot2::scale_x_continuous(expand = c(0, 0)) +
-    ggplot2::scale_y_continuous(expand = c(0, 0)) +
-    ggplot2::coord_cartesian(expand = FALSE) +
-    ggplot2::labs(
-      title = "Spectral density",
-      subtitle = sprintf(
-        "%s retained pixel values over %d bands, %s",
-        format(sum(kept), big.mark = ","), nb, coordinate_description
-      ),
-      x = if (cb$has_wavelengths) "wavelength (nm)" else "band index",
-      y = value_label, caption = caption
-    ) +
-    hsa_theme() +
-    ggplot2::theme(
-      axis.title = ggplot2::element_text(colour = "#E8E8EC", size = 9),
-      axis.text = ggplot2::element_text(colour = "#9A9AA4", size = 8),
-      axis.line = ggplot2::element_line(colour = "#3A3A44", linewidth = 0.3)
-    )
+  subtitle <- sprintf(
+    "%s retained pixel values over %d bands, %s",
+    format(sum(kept), big.mark = ","), nb, coordinate_description
+  )
+  x_label <- if (cb$has_wavelengths) "wavelength (nm)" else "band index"
+  plot <- .render_density(
+    df, palette, display_domain, normalise, transform, overlay, show_limits,
+    reference_values, subtitle, x_label, value_label, caption
+  )
 
   provenance_overlay <- list(
     coordinate = overlay$coordinate, mean = overlay$mean,
@@ -447,7 +476,7 @@ hsa_spectral_density <- function(cube, nbins = 128L, limits = NULL,
   )
   global_references <- list(
     shown = show_limits, probs = probs, values = reference_values,
-    population = if (show_limits) length(finite_population) else 0L,
+    population = if (show_limits) global_population else 0L,
     quantile_type = 7L,
     description = paste(
       "Global raw eligible input-value percentiles, including finite values",

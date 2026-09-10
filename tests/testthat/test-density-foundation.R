@@ -8,7 +8,8 @@ test_that("density preserves exact raw bin accounting and excludes the mask", {
                                transform = "identity")
   record <- density_record(plot)
 
-  expect_equal(record$H[, 1], c(3, 2))
+  expect_identical(record$H[, 1], c(3L, 2L))
+  expect_type(record$H, "integer")
   expect_equal(record$below, 1)
   expect_equal(record$above, 1)
   expect_equal(record$nonfinite, 1)
@@ -231,4 +232,32 @@ test_that("binned overlays describe retained pixels and are compact provenance",
   )
   expect_true(is.finite(density_record(extreme)$overlay$mean))
   expect_equal(density_record(extreme)$overlay$mean, 0, tolerance = 1e-12)
+})
+
+test_that("density plots retain only compact rendering environments", {
+  source <- array(seq_len(24) / 24, c(2, 4, 3))
+  plots <- list(
+    fixed = hsa_spectral_density(source, limits = c(0, 1), nbins = 4),
+    automatic = hsa_spectral_density(source, nbins = 4),
+    references = hsa_spectral_density(
+      source, limits = c(0, 1), nbins = 4, show_limits = TRUE
+    )
+  )
+  for (name in names(plots)) {
+    expect_compact_render_environments(plots[[name]])
+    expect_warning(ggplot2::ggplot_build(plots[[name]]), NA, info = name)
+    expect_identical(
+      hyperspectaculR:::hsa_provenance(plots[[name]] + ggplot2::labs(title = name)),
+      hyperspectaculR:::hsa_provenance(plots[[name]])
+    )
+  }
+
+  make_plot <- function(size) {
+    values <- seq_len(size * size * 3) / (size * size * 3)
+    hsa_spectral_density(array(values, c(size, size, 3)), nbins = 8,
+                         show_limits = TRUE)
+  }
+  small_size <- length(serialize(make_plot(10), NULL))
+  large_size <- length(serialize(make_plot(100), NULL))
+  expect_lt(large_size - small_size, 100000)
 })
