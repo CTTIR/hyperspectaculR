@@ -100,7 +100,8 @@ hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
   p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$x, y = .data$y, fill = .data$value)) +
     ggplot2::geom_raster(interpolate = interpolate) +
     ggplot2::scale_fill_gradientn(
-      colours = hsa_palette(palette), limits = domain, oob = scales::squish,
+      colours = hsa_palette(palette), limits = domain,
+      rescaler = .scale_rescaler, oob = scales::squish,
       na.value = "transparent", guide = "none"
     ) +
     ggplot2::scale_y_reverse(expand = c(0, 0)) +
@@ -182,7 +183,8 @@ hsa_spectral_flux <- function(cube, palette = "inferno", normalise = TRUE,
   p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$x, y = .data$y, fill = .data$value)) +
     ggplot2::geom_raster(interpolate = interpolate) +
     ggplot2::scale_fill_gradientn(
-      colours = hsa_palette(palette), limits = domain, oob = scales::squish,
+      colours = hsa_palette(palette), limits = domain,
+      rescaler = .scale_rescaler, oob = scales::squish,
       na.value = "transparent", guide = "none"
     ) +
     ggplot2::scale_y_reverse(expand = c(0, 0)) +
@@ -417,6 +419,9 @@ hsa_fusion <- function(cube, red = NULL, green = NULL, blue = NULL,
 # so no rendering can quietly omit it.
 .stretch_caption <- function(method, limits = NULL, probs = c(0.02, 0.98),
                              value_label = "input value") {
+  fmt_percent <- function(probability) {
+    format(probability * 100, digits = 6, trim = TRUE, scientific = FALSE)
+  }
   if (is.list(method)) {
     record <- method
   } else {
@@ -430,8 +435,8 @@ hsa_fusion <- function(cube, red = NULL, green = NULL, blue = NULL,
       return(switch(method,
         range = "Linear stretch over the full finite data range",
         percentile = sprintf(
-          "Linear stretch between the %.0f%% and %.0f%% percentiles",
-          probs[1L] * 100, probs[2L] * 100
+          "Linear stretch between the %s%% and %s%% percentiles",
+          fmt_percent(probs[1L]), fmt_percent(probs[2L])
         ),
         none = "No contrast stretch applied"
       ))
@@ -461,15 +466,15 @@ hsa_fusion <- function(cube, red = NULL, green = NULL, blue = NULL,
       ""
     }
     return(sprintf(
-      "Requested %.0f-%.0f%% percentile stretch collapsed; effective range stretch [%s, %s] to [0, 1]%s",
-      record$probs[1L] * 100, record$probs[2L] * 100,
+      "Requested %s-%s%% percentile stretch collapsed; effective range stretch [%s, %s] to [0, 1]%s",
+      fmt_percent(record$probs[1L]), fmt_percent(record$probs[2L]),
       fmt(lim[1L]), fmt(lim[2L]), constant_note
     ))
   }
   if (identical(record$effective_method, "percentile")) {
     return(sprintf(
-      "Linear %.0f-%.0f%% percentile stretch of %s [%s, %s] to [0, 1]",
-      record$probs[1L] * 100, record$probs[2L] * 100, value_label,
+      "Linear %s-%s%% percentile stretch of %s [%s, %s] to [0, 1]",
+      fmt_percent(record$probs[1L]), fmt_percent(record$probs[2L]), value_label,
       fmt(lim[1L]), fmt(lim[2L])
     ))
   }

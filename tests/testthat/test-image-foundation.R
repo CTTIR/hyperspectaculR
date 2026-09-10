@@ -282,6 +282,50 @@ test_that("fixed scalar display domains give the same raw value the same fill", 
   expect_identical(fa, fb)
 })
 
+test_that("scalar renderers map extreme finite display domains without overflow", {
+  maximum <- .Machine$double.xmax
+  mandala <- hsa_mandala(
+    array(c(-maximum, 0, maximum), c(1, 3, 1)),
+    n_rings = 1, palette = "magma", stretch = "none",
+    display_limits = c(-maximum, maximum)
+  )
+  mandala_fill <- ggplot2::ggplot_build(mandala)$data[[1]]$fill
+  expect_equal(mandala$scales$get_scales("fill")$limits,
+               c(-maximum, maximum))
+  expect_false(any(mandala_fill == "transparent"))
+  expect_length(unique(mandala_fill), 3L)
+  expect_identical(toupper(mandala_fill[1]),
+                   toupper(substr(hsa_palette("magma")[1], 1, 7)))
+  expect_identical(toupper(mandala_fill[3]),
+                   toupper(substr(hsa_palette("magma")[256], 1, 7)))
+
+  flux <- hsa_spectral_flux(
+    array(c(0, 0, 0, maximum), c(1, 2, 2)),
+    normalise = FALSE, palette = "magma", stretch = "none",
+    display_limits = c(-maximum, maximum)
+  )
+  flux_fill <- ggplot2::ggplot_build(flux)$data[[1]]$fill
+  expect_equal(flux$scales$get_scales("fill")$limits,
+               c(-maximum, maximum))
+  expect_false(any(flux_fill == "transparent"))
+  expect_length(unique(flux_fill), 2L)
+  expect_identical(toupper(flux_fill[2]),
+                   toupper(substr(hsa_palette("magma")[256], 1, 7)))
+})
+
+test_that("fractional percentile captions preserve the applied probabilities", {
+  ordinary <- hyperspectaculR:::.stretch(0:100, "percentile", c(.001, .999))
+  expect_match(hyperspectaculR:::.stretch_caption(ordinary), "0.1-99.9%")
+  expect_false(grepl("0-100%", hyperspectaculR:::.stretch_caption(ordinary),
+                     fixed = TRUE))
+
+  fallback <- hyperspectaculR:::.stretch(c(0, 0, 0, 1), "percentile",
+                                         c(.001, .5))
+  expect_match(hyperspectaculR:::.stretch_caption(fallback), "0.1-50%")
+  expect_match(hyperspectaculR:::.stretch_caption(fallback),
+               "effective range stretch")
+})
+
 test_that("image provenance is compact, complete, and survives ggplot additions", {
   input <- fusion_fixture()
   before <- input
@@ -310,7 +354,14 @@ test_that("image provenance is compact, complete, and survives ggplot additions"
 })
 
 test_that("demo arguments and palette controls are strict and RNG absence is preserved", {
-  for (arg in list(rows = 0, cols = 1.5, bands = NA, seed = Inf, seed = c(1, 2))) {
+  invalid <- list(
+    list(rows = 0),
+    list(cols = 1.5),
+    list(bands = NA),
+    list(seed = Inf),
+    list(seed = c(1, 2))
+  )
+  for (arg in invalid) {
     expect_error(do.call(hsa_demo_cube, arg), names(arg))
   }
   expect_error(hsa_palette("magma", n = 0), "n")
