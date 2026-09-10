@@ -1,0 +1,9 @@
+"composition","quantity","rows","cols","bands","input_finite","value_label","package_version","rendered_rows","built_without_warnings"
+"fusion","mean selected-band RGB fusion",275,290,51,4067250,"input value","0.2.0",79750,TRUE
+"mandala","radial band sample",275,290,51,4067250,"input value","0.2.0",79750,TRUE
+"wavelength_mandala","radial band sample",275,290,51,4067250,"input value","0.2.0",79750,TRUE
+"flux","mean absolute band step",275,290,51,4067250,"input value","0.2.0",79750,TRUE
+"physical_flux","mean absolute spectral slope",275,290,51,4067250,"input value","0.2.0",79750,TRUE
+"density","spectral density",275,290,51,4067250,"input value","0.2.0",6528,TRUE
+"gradient","RMS spectral slope",275,290,51,4067250,"input value","0.2.0",79750,TRUE
+"quartiles","within-pixel spectral quartiles",275,290,51,4067250,"input value","0.2.0",239250,TRUE

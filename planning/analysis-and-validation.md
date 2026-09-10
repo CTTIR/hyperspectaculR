@@ -1,4 +1,4 @@
-This document specifies the scientific and numerical work behind the [project roadmap](../ROADMAP.md). It is based on the 2026-09-10 audit of `1df0bdd`. All new interfaces and behavioural changes below are proposals for implementation and review; none is provided merely by adding this document.
+This document specifies the scientific and numerical work behind the [project roadmap](../ROADMAP.md). It is based on the 2026-09-10 audit of `1df0bdd`. The adopted contracts are implemented in the 0.2.0 candidate. [Recorded decisions](evidence/decisions.md), [audit regressions](evidence/audit-resolution.md), [sampling experiments](evidence/sampling.md), [histogram study](evidence/density-resolution.md), and [performance measurements](evidence/performance.md) distinguish completed evidence from future work. Current help pages define the exact public signatures; the requirements below remain the numerical validation specification.
 
 The intended result is a figure whose source population, computed quantity, exclusion rules, coordinate system, and display enhancement can be recovered and tested. Descriptive summaries should help users understand their data and the rendering. The package should not infer a physiological interpretation or instrument failure from a visually unusual pattern alone.
 
@@ -6,9 +6,9 @@ The intended result is a figure whose source population, computed quantity, excl
 
 Represent a cube as `X[row, col, band]`. Its spatial validity mask is `M[row, col]`, and optional physical band coordinates are `lambda[band]` in nanometres. A value is eligible for use only when its spatial mask is true and its numeric value is finite. An absent mask means all spatial positions are eligible; nonfinite values remain invalid.
 
-Recommended input contract:
+Adopted input contract:
 
-| Input | Proposed rule | Reason |
+| Input | Adopted rule | Reason |
 |---|---|---|
 | `data` | Integer/double array with exactly three positive dimensions; reject complex, character, logical, and zero-length dimensions | Calculations need real-valued measurements and stable shapes |
 | `mask` | NULL or logical matrix matching rows/columns; reject NA mask entries with an actionable error | Mask uncertainty must not silently turn into inclusion |
@@ -25,7 +25,7 @@ For explicit wavelength requests, retain nearest-band selection but specify a de
 
 Duplicate selections within a fusion group should be rejected or explicitly represented as weights; silently repeating a band changes its contribution. Overlap between different colour groups is allowed when deliberately supplied. Default groups must be nonempty, disjoint, contiguous, and cover the available bands once; require at least three bands for that default.
 
-The proposed image missing-data default is **propagation**: if a quantity needs several selected measurements, every required measurement must be valid. This keeps its definition constant across pixels. An **available-case** fusion mode may average valid contributors only, provided each channel has at least one contributor and the changing band counts are disclosed. Never replace a missing channel with zero. Whether to expose these modes through a new `missing` argument is an M0 interface decision; the behaviour must be decided before implementation.
+The image missing-data default is **propagation**: if a quantity needs several selected measurements, every required measurement must be valid. This keeps its definition constant across pixels. The explicit **available-case** fusion mode averages valid contributors only, provided each channel has at least one contributor and the changing band counts are disclosed. Never replace a missing channel with zero. Fusion exposes these choices as `missing = "propagate"` (default) and `missing = "available"`; full channel contribution counts remain inspectable.
 
 Density is a per-band distribution, so it uses finite eligible observations separately in each band. Entirely invalid spatial pixels are absent everywhere. An entirely invalid image or cube should produce an actionable error rather than an apparently measured blank/black image. A partly empty density band should remain visible as missing information, with a gap in its overlays.
 
@@ -44,11 +44,21 @@ These formulas require at least two bands. `V` has the input-value unit; `S` is 
 
 The same monotonic change from zero to one gives `S = 0.5` at three samples and `S = 0.2` at six samples. Therefore mean-step division is not a band-count correction that makes instruments comparable. Fix that claim now while preserving the defined calculation.
 
-A later wavelength-aware candidate is `V / (lambda_B - lambda_1)`, with input-value units per nm. For a sampled piecewise-linear spectrum this is its mean absolute slope over the span. It still depends on what spectral structure the sampling captures, and noise can increase variation as more bands are acquired. Compare a common physical interval and document any resampling; do not describe the quantity as universally sampling-invariant.
+The candidate implements `normalization = "wavelength_span"` as `V / (lambda_B - lambda_1)`, with input-value units per nm. For a sampled piecewise-linear spectrum this is its mean absolute slope over the span. It still depends on what spectral structure the sampling captures, and noise can increase variation as more bands are acquired. Compare a common physical interval and document any resampling; do not describe the quantity as universally sampling-invariant.
 
 For fusion, define each channel as the arithmetic mean over its declared band group under the chosen missingness policy. Record the actual indices and wavelengths rather than only the minimum and maximum: a noncontiguous group cannot be reconstructed from its endpoints. Preserve the aggregate channel matrix before display enhancement. Averaging can reduce independent per-band noise, but avoid universal claims about saturation or noise suppression when bands contain different signal or correlated noise.
 
-For mandala, the display selects one input band at each spatial pixel according to its annulus. The stabilization release should correct the image centre and explicitly describe the existing uniform index sampling across rings. It does not interpolate spectra or provide spatially uniform spectral coverage. Do not imply that the image's value distribution represents every band at every pixel. With one ring or fewer sampled bands than source bands, describe the actual selections without claiming a full physical sweep.
+For mandala, the display selects one input band at each spatial pixel according to its annulus. The corrected centre is `c((cols + 1)/2, (rows + 1)/2)`. Default `sampling = "index"` retains index sampling, while `sampling = "wavelength"` targets evenly spaced physical coordinates and selects the nearest measured bands, resolving ties toward the shorter wavelength. Repeated selections and target errors are recorded. It does not interpolate spectra or provide spatially uniform spectral coverage. Do not imply that the image's value distribution represents every band at every pixel. With one ring or fewer sampled bands than source bands, describe the actual selections without claiming a full physical sweep.
+
+The experimental `hsa_spectral_gradient()` is precisely an RMS spectral slope, not a spatial gradient or a signed derivative. With interval widths `h = diff(lambda)` and endpoint span `L`, it computes:
+
+```text
+G = sqrt(sum(h * (diff(x)/h)^2) / L)
+```
+
+This is the RMS magnitude of the piecewise-linear spectral derivative, in input-value units per nm. Complete spectra and finite, positive, representable physical intervals are required; missing bands are not bridged. Short intervals amplify noise. Calculation preserves representable extreme and subnormal final results and errors when the requested final quantity is not finite.
+
+The experimental `hsa_spectral_quartiles()` computes type-7 25th, 50th and 75th percentiles across equally weighted measured bands within each pixel. It discards spectral order and depends on sampling density, including on irregular grids. These panels are not uncertainty intervals. They share full-spectrum validity, one stretch pooled over all three raw panels, and one visible scale; a singleton measured band produces three identical panels. [Sampling experiments](evidence/sampling.md) establish examples and counterexamples for both new summaries.
 
 **3. Treat enhancement and the colour domain as separate operations**
 
@@ -58,19 +68,19 @@ For finite eligible image values and endpoints `L < U`, a linear stretch is:
 z = min(1, max(0, (x - L) / (U - L)))
 ```
 
-Use a specified quantile convention, preferably the current R `quantile(..., type = 7)`, and record the requested probabilities. The same missingness and validity policy must determine both the rendered values and the population used for limits.
+Use the specified R `quantile(..., type = 7)` convention, and record the requested probabilities. The same missingness and validity policy must determine both the rendered values and the population used for limits.
 
 | Case | Numerical behaviour | Required disclosure |
 |---|---|---|
 | Percentile endpoints differ | Apply the stated linear stretch and clamp finite tails | Requested/effective method, probabilities, endpoints, clipped counts |
 | Requested quantiles coincide but finite data vary | Fall back to the finite range | “Full-range fallback: requested quantiles coincide”; actual endpoints |
-| All eligible values are the same and a stretch is requested | Map to a deliberate fixed endpoint, proposed zero/dark | Constant-data handling and the constant value; no division by zero |
+| All eligible values are the same and a stretch is requested | Map to zero, the dark palette endpoint | Constant-data handling and the constant value; no division by zero |
 | No eligible values | Reject before plotting | Clear no-valid-data error |
 | `stretch = "none"` | Keep numeric values unchanged | Explicit colour domain and out-of-domain policy |
 
 Every stretched scalar image should use a fixed fill domain `[0, 1]`. Constant zero flux must use the palette's low endpoint. Store enough information to show that the legend or caption corresponds to the same calculation as the data.
 
-For `stretch = "none"`, the recommended interface adds an explicit display-domain option, tentatively `display_limits`. A documented `[0, 1]` display default is suitable for normalized reflectance-style images, but it is a display convention, not proof of calibration. Values outside that domain require an explicit domain or a clear error; avoid hidden clipping. A raw total-variation field or digital-count cube may require a different domain. The final argument and default need compatibility review in M0.
+For `stretch = "none"`, the interface uses the explicit display-domain argument `display_limits`. A documented `[0, 1]` display default is suitable for normalized reflectance-style images, but it is a display convention, not proof of calibration. Values outside that domain require an explicit domain or a clear error; avoid hidden clipping. A raw total-variation field or digital-count cube may require a different domain. The adopted default is `display_limits = c(0, 1)`; raw values outside the supplied domain raise a clear error.
 
 Explicit domains should also make comparisons possible: the same finite input value maps to the same colour in separate figures that use the same palette and domain. “No stretch” alone does not guarantee this when a plotting library learns a domain separately from each dataset.
 
@@ -78,7 +88,7 @@ For RGB, values passed to the colour constructor must be valid in its expected d
 
 **4. Define what the density plot counts**
 
-For band `b`, let `F_b` be its finite eligible values, `H[k,b]` the histogram counts, and `n_kept[b] = sum_k H[k,b]`. Use explicit, documented boundary rules; preserving the existing right-closed bins with the lowest endpoint included is a reasonable compatibility choice.
+For band `b`, let `F_b` be its finite eligible values, `H[k,b]` the histogram counts, and `n_kept[b] = sum_k H[k,b]`. Use explicit, documented boundary rules; the implementation uses exact right-closed bins with the lowest endpoint included.
 
 ```text
 n_finite[b] = n_below[b] + n_kept[b] + n_above[b]
@@ -103,7 +113,7 @@ When automatic percentiles collapse, use the finite data range if it has width. 
 
 For irregular wavelengths, choose cells with boundaries derived from neighbouring band coordinates, without moving the supplied measurement coordinates. A midpoint-boundary rectangle policy is a practical default; single-band widths require an explicit documented convention. On an irregular grid, a cell's arithmetic centre need not equal its measured wavelength: keep markers and overlays at the original wavelength, and assign counts to the correct interval. The cells represent measurements at their labelled bands, not measurements of previously unobserved intervening spectra. Avoid smoothed interpolation in the diagnostic histogram by default; any optional smoothing should be disclosed. This follows the distinction between raster and arbitrary rectangle geometry in the [ggplot2 documentation](https://ggplot2.tidyverse.org/reference/geom_tile.html).
 
-Keep global percentile rules distinct from limits calculated on fused channels, mandala-selected pixels, or spectral differences. Stabilization should correct the existing `show_limits` description to identify global finite raw-value percentiles. A later comparison feature should require compatible quantities, domains, and source populations. A reflectance-density plot cannot validate the scale of spectral flux merely by overlaying its numerical endpoints.
+Keep global percentile rules distinct from limits calculated on fused channels, mandala-selected pixels, or spectral differences. `show_limits = TRUE` displays global finite raw-value percentile references with that population explicitly identified. A later comparison feature should require compatible quantities, domains, and source populations. A reflectance-density plot cannot validate the scale of spectral flux merely by overlaying its numerical endpoints.
 
 **5. Make provenance inspectable without changing the plot workflow**
 
@@ -187,7 +197,7 @@ The audit measured a 256 × 320 × 100 double cube at 62.5 MiB. Large-allocation
 
 Benchmark at least the default 48 × 64 × 24 demo, the 256 × 320 × 100 audit fixture, and a representative larger cube when the test host has adequate memory. Use synthetic generation with fixed dimensions/seed; record setup separately from computation and drawing. Run performance comparisons sequentially on the same host with a warmup and at least three measured repetitions, reporting the median and observed range.
 
-Proposed acceptance targets, to be checked after M0 reproduces the baseline:
+Adopted acceptance targets; measured outcomes and investigated tradeoffs are in the [performance report](evidence/performance.md):
 
 - Reference lines allocate no discarded full-cube stretched-value arrays. Aim for no more than 25% additional large-allocation traffic over the equivalent no-lines call on the audit fixture, using joint/reused quantile work where possible. If the target cannot be met without changing exactness, retain exact results and report the remaining cost explicitly.
 - With fixed density limits and no global references, extra working storage should scale with a band-sized buffer and the `nbins × bands` histogram, plus rendering output. The already supplied input cube is not counted as avoidable extra storage. Avoid a second array proportional to all cube elements in this path.
