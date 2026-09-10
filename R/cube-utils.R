@@ -193,6 +193,13 @@ NULL
   (x / scale - lo) / (hi - lo)
 }
 
+.scale_rescaler <- function(x, to = c(0, 1),
+                            from = range(x, na.rm = TRUE)) {
+  scaled <- .rescale_affine(x, from)
+  if (identical(to, c(0, 1))) return(scaled)
+  to[1L] + scaled * (to[2L] - to[1L])
+}
+
 # Rescale finite observations to [0, 1] using a stated contrast stretch.
 .stretch <- function(x, method = c("percentile", "range", "none"),
                      probs = c(0.02, 0.98), display_limits = c(0, 1)) {
