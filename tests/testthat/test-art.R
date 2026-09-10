@@ -103,7 +103,7 @@ test_that("the stretch helper reports the limits it used", {
   expect_true(all(st$values >= 0 & st$values <= 1))
   expect_length(st$limits, 2L)
 
-  none <- hyperspectaculR:::.stretch(x, "none")
+  none <- hyperspectaculR:::.stretch(x, "none", display_limits = c(0, 100))
   expect_equal(none$values, x)
 })
 

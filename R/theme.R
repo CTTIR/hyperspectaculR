@@ -52,10 +52,10 @@ hsa_theme <- function(base_size = 11, base_family = "",
 
 #' Perceptually Uniform Palettes for Spectral Imagery
 #'
-#' Returns colour ramps suitable for scientific imagery. All options are
-#' perceptually uniform and monotonic in lightness, so ordering survives
-#' greyscale printing and is legible to colourblind readers — which rules out
-#' the rainbow ramps that make striking but misleading figures.
+#' Returns colour ramps suitable for scientific imagery. The palettes other
+#' than `"turbo"` are perceptually uniform and monotonic in lightness, so
+#' ordering survives greyscale printing and remains legible to colourblind
+#' readers. `"turbo"` is retained with a warning for compatibility.
 #'
 #' @param name Palette name. One of `"viridis"`, `"magma"`, `"inferno"`,
 #'   `"plasma"`, `"cividis"`, `"mako"`, `"rocket"`, `"turbo"`.
@@ -72,6 +72,11 @@ hsa_palette <- function(name = c("viridis", "magma", "inferno", "plasma",
                                  "cividis", "mako", "rocket", "turbo"),
                         n = 256L, direction = 1) {
   name <- match.arg(name)
+  n <- .validate_count(n, "n")
+  if (!is.numeric(direction) || length(direction) != 1L ||
+      !is.finite(direction) || !direction %in% c(-1, 1)) {
+    cli::cli_abort("{.arg direction} must be exactly {.val 1} or {.val -1}.")
+  }
   if (identical(name, "turbo")) {
     cli::cli_warn(c(
       "{.val turbo} is not monotonic in lightness.",
