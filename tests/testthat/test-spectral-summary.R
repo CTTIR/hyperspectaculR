@@ -80,6 +80,26 @@ test_that("scaled arithmetic retains representable extreme physical quantities",
   expect_error(hsa_spectral_flux(spectral_fixture(c(-largest, 0, largest)), normalization = "total"), "not representable")
 })
 
+test_that("normalized aggregates round only after subnormal contributions combine", {
+  m <- 2^-1074
+  cube <- spectral_fixture(c(0, m, 0, m, 0), 0:4)
+  for (fun in list(hsa_spectral_flux, physical_flux, hsa_spectral_gradient)) {
+    actual <- fun(cube)$data$raw_value
+    expect_gt(actual, 0)
+    expect_identical(actual, m)
+  }
+  expect_identical(hsa_spectral_flux(cube, normalization = "total")$data$raw_value, 4 * m)
+  # Zero intervals at either end cannot erase the exponent of tiny terms.
+  with_zeros <- spectral_fixture(c(0, 0, m, 0, m, m), 0:5)
+  for (fun in list(hsa_spectral_flux, physical_flux, hsa_spectral_gradient)) {
+    expect_identical(fun(with_zeros)$data$raw_value, m)
+  }
+  near_max <- spectral_fixture(c(0, .Machine$double.xmax, 0), 0:2)
+  for (fun in list(hsa_spectral_flux, physical_flux, hsa_spectral_gradient)) {
+    expect_equal(fun(near_max)$data$raw_value / .Machine$double.xmax, 1, tolerance = 1e-14)
+  }
+})
+
 test_that("wavelength-target mandalas retain selection and ring geometry", {
   cube <- spectral_fixture(1:4, c(500, 510, 550, 600))
   p <- hsa_mandala(cube, n_rings = 5, sampling = "wavelength")

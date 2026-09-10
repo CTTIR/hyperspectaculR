@@ -12,17 +12,32 @@
   list(intervals = intervals, span = span)
 }
 
-# Subtract before division to preserve close large operands. Only an overflowing
-# difference needs operand-wise scaling; its operands necessarily have opposite signs.
+# Keep a separate binary exponent so normalization and aggregation do not
+# prematurely round subnormal contributions or overflow large differences.
+.spectral_binary_parts <- function(x) {
+  exponent <- numeric(length(x))
+  nonzero <- x > 0
+  # log2(double.xmax) rounds to 1024; cap before constructing the power of two.
+  exponent[nonzero] <- pmin(floor(log2(x[nonzero])), 1023)
+  mantissa <- x / 2^exponent
+  rounded_up <- nonzero & mantissa < 1
+  mantissa[rounded_up] <- mantissa[rounded_up] * 2
+  exponent[rounded_up] <- exponent[rounded_up] - 1
+  list(mantissa = mantissa, exponent = exponent)
+}
+
 .scaled_spectral_difference <- function(next_value, previous_value, denominator) {
   next_value <- as.double(next_value)
   previous_value <- as.double(previous_value)
-  difference <- next_value - previous_value
+  difference <- abs(next_value - previous_value)
   overflow <- is.infinite(difference)
-  result <- difference / denominator
-  result[overflow] <- next_value[overflow] / denominator -
-    previous_value[overflow] / denominator
-  abs(result)
+  # Ordinary differences must be formed first to preserve close huge operands.
+  # Overflowing differences have opposite-sign operands and can be halved safely.
+  difference[overflow] <- abs(next_value[overflow] / 2 - previous_value[overflow] / 2)
+  numerator <- .spectral_binary_parts(difference)
+  divisor <- .spectral_binary_parts(denominator)
+  list(mantissa = numerator$mantissa / divisor$mantissa,
+       exponent = numerator$exponent + as.integer(overflow) - divisor$exponent)
 }
 
 .spectral_change <- function(cube, denominator, rms = FALSE) {
@@ -31,29 +46,34 @@
   for (b in seq_len(d[3L])) valid <- valid & is.finite(.cube_band(cube, b))
   out <- matrix(NA_real_, d[1L], d[2L])
   acc <- numeric(sum(valid))
+  exponent <- numeric(length(acc))
   previous <- .cube_band(cube, 1L)[valid]
   for (b in seq_len(d[3L] - 1L)) {
     next_value <- .cube_band(cube, b + 1L)[valid]
     divisor <- if (length(denominator) == 1L) denominator else denominator[b]
     contribution <- .scaled_spectral_difference(next_value, previous, divisor)
-    if (rms) {
-      # A scaled two-term norm avoids both squared overflow and h/L underflow.
-      scale <- pmax(acc, contribution)
-      nonzero <- is.finite(scale) & scale > 0
-      acc[nonzero] <- scale[nonzero] * sqrt(
-        (acc[nonzero] / scale[nonzero])^2 +
-          (contribution[nonzero] / scale[nonzero])^2
-      )
-      acc[!is.finite(scale)] <- Inf
-    } else {
-      acc <- acc + contribution
-    }
-    if (any(!is.finite(acc))) {
-      cli::cli_abort("Requested spectral quantity is not representable with finite numeric arithmetic.")
-    }
+    # Zero terms must not set the common exponent: that could erase an entire
+    # subnormal aggregate before any nonzero term has been accumulated.
+    exponent[acc == 0] <- contribution$exponent[acc == 0]
+    contribution$exponent[contribution$mantissa == 0] <- exponent[contribution$mantissa == 0]
+    common <- pmax(exponent, contribution$exponent)
+    a <- acc * 2^(exponent - common)
+    z <- contribution$mantissa * 2^(contribution$exponent - common)
+    combined <- .spectral_binary_parts(if (rms) sqrt(a^2 + z^2) else a + z)
+    acc <- combined$mantissa
+    exponent <- common + combined$exponent
     previous <- next_value
   }
-  out[valid] <- acc
+  # Apply the subnormal power in two stages, rounding only the final product.
+  # For normal values the exponent itself is representable as a power of two.
+  small <- exponent < -1022
+  result <- acc * 2^pmax(exponent, -1022)
+  result[small] <- (acc[small] * 2^(exponent[small] + 1022)) * 2^-1022
+  result[acc == 0] <- 0
+  if (any(!is.finite(result))) {
+    cli::cli_abort("Requested spectral quantity is not representable with finite numeric arithmetic.")
+  }
+  out[valid] <- result
   out
 }
 
