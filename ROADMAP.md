@@ -1,6 +1,6 @@
 This roadmap turns the 2026-09-10 audit of commit `1df0bdd` into a delivery plan for trustworthy hyperspectral figures and stronger analytical validation. The immediate objective is to correct the four existing compositions, make their transformations inspectable, and establish evidence that their outputs are scientifically interpretable.
 
-Implementation has produced a **0.2.0 release candidate** on the feature branch. All implementation tasks, including publication assets and validation gates, have passed scoped reviews. The final whole-branch review and hosted-platform checks complete the release-evidence gate. The status tables below track delivery against the original specification. No release has been published.
+Implementation has produced a **0.2.0 release candidate** on the feature branch. All implementation tasks, including publication assets and validation gates, have passed scoped reviews. The final whole-branch review found three minor disclosure/evidence issues, all addressed in one correction wave. Hosted validation and exact tested checkpoints are recorded in [the candidate evidence](planning/evidence/release-candidate.md); [draft pull request #3](https://github.com/CTTIR/hyperspectaculR/pull/3) is the reviewable handoff. The status tables below track delivery against the original specification. No release has been published.
 
 Detailed definitions, recommended behaviour, numerical examples, and test fixtures are in [the analysis and validation plan](planning/analysis-and-validation.md). Adopted public arguments are implemented and documented; [decisions](planning/evidence/decisions.md), [audit closure](planning/evidence/audit-resolution.md), [sampling evidence](planning/evidence/sampling.md) and [performance evidence](planning/evidence/performance.md) record the outcome.
 
@@ -31,7 +31,7 @@ The original stabilization estimate was **15–25 focused engineering days**, or
 | M2 — Correct image calculations, geometry, and enhancement | Maintainer | 4–6 days | M1 | Done |
 | M3 — Correct density diagnostics and expose provenance | Maintainer, with scientific review | 3–5 days | M1; M2 for shared enhancement metadata | Done |
 | M4 — Bound memory, enforce checks, and repair documentation/site | Maintainer; shared-workflow owner where needed | 3–5 days | M2–M3 for final baselines | Done |
-| M5 — Validate and prepare the release candidate | Maintainer | 1–2 days | M0–M4 | In Progress |
+| M5 — Validate and prepare the release candidate | Maintainer | 1–2 days | M0–M4 | Done; publication remains separate |
 
 The critical sequence is **input/validity contract → calculations and display domains → trustworthy diagnostics → release evidence**. The gallery asset fix can be prepared after M0 without waiting for numerical changes; regenerated figures must use the final corrected implementation. CI test structure can also be prepared early, while final thresholds and snapshots wait for corrected behaviour.
 
