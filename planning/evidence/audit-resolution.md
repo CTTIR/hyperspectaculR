@@ -1,4 +1,4 @@
-This ledger ties the 2026-09-10 audit findings to executable regressions. “Verified” identifies completed source checks; release, site and platform gates are recorded separately. The numerical tests use independently specified small-cube expectations. The source checkpoint below is `6680af3`; final candidate checks will be recorded in the release evidence.
+This ledger ties the 2026-09-10 audit findings to executable regressions. “Verified” identifies completed source checks; release, site and platform gates are recorded separately. The numerical tests use independently specified small-cube expectations. The historical checkpoints below show how each correction was verified; the final candidate status is recorded in the release evidence.
 
 | ID | Correction and regression | State |
 |---|---|---|
@@ -28,4 +28,6 @@ The supplementary geometry and sampling corrections are covered by the image fou
 
 A subsequent memory review extended the original audit: ggplot calculation environments retained source cubes even when the visible metadata was compact. Shared render builders now retain only the final render data and compact settings. [The environment probe](../../tests/testthat/helper-render-environments.R) inspects plot, aesthetic and scale callback environments. Increasing density input from 10 × 10 × 3 to 100 × 100 × 3 changed serialized plot size by 14 bytes in the reviewed fix, instead of about 1.07 MB before it. Exact global quantiles still need a temporary finite-value population during calculation; that temporary storage is a separate performance cost.
 
-Final package checkpoint `d0baf4a` passes 554 assertions, including four unskipped SVG baselines, on both R 4.6.1 and exact R 4.1.0 with ggplot2 4.0.3. The selected ggplot2 3.4.0 combination passes all 550 numerical assertions with the modern SVG baseline explicitly excluded. Full release and review status is recorded in [release-candidate.md](release-candidate.md).
+The earlier package checkpoint `d0baf4a` passes 554 assertions, including four unskipped SVG baselines, on both R 4.6.1 and exact R 4.1.0 with ggplot2 4.0.3. The selected ggplot2 3.4.0 combination passes all 550 numerical assertions with the modern SVG baseline explicitly excluded. Full release and review status is recorded in [release-candidate.md](release-candidate.md).
+
+The final caption/evidence correction at `9128b71` passes 556 assertions with no failures, warnings or skips on R 4.6.1, including all four SVG baselines. Its standalone density caption explicitly identifies the binned mean and binned pixel envelope. All three minor whole-branch findings received one consolidated correction and a scoped verification; final platform and publication status is in [release-candidate.md](release-candidate.md).
