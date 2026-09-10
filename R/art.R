@@ -51,16 +51,20 @@
 #'
 #' Renders the scene as concentric annuli, each drawn from a sampled spectral
 #' band: the innermost ring uses the first band and the outermost uses the last.
-#' The result is a single image that sweeps band indices outward from a chosen
-#' centre.
+#' The result is a spatial composition; unequal annular areas do not estimate
+#' the spectral distribution. A single ring selects the first band.
 #'
 #' This exploits the spectral dimension rather than decorating a single band,
 #' which is what distinguishes it from an ordinary false-colour rendering. The
-#' radius-to-band-index mapping is linear and the actual selections are
-#' reported in the caption, so the figure remains readable as data.
+#' default radius-to-band-index mapping is linear. Wavelength sampling uses
+#' equally spaced physical targets and nearest measured bands, with ties toward
+#' shorter wavelengths. Repeated selections and empty rings retain the geometry
+#' and are disclosed in the caption and provenance.
 #'
 #' @param cube An `hsi_cube` (from \pkg{hyperspectR}) or a 3-D array with
 #'   dimensions `(rows, cols, bands)`.
+#' @param sampling Ring targets: `"index"` (default) or `"wavelength"`.
+#'   Wavelength sampling requires physical metadata in nm.
 #' @param centre Numeric length-2 vector `c(x, y)` in pixels. `NULL` (default)
 #'   uses the image centre.
 #' @param n_rings Number of annuli. Default `36`. More rings sample the
@@ -87,8 +91,10 @@ hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
                         palette = "magma",
                         stretch = c("percentile", "range", "none"),
                         probs = c(0.02, 0.98), display_limits = c(0, 1),
-                        value_label = "input value", interpolate = TRUE) {
+                        value_label = "input value", interpolate = TRUE,
+                        sampling = c("index", "wavelength")) {
   cb <- .as_cube(cube)
+  sampling <- match.arg(sampling)
   stretch <- match.arg(stretch)
   probs <- .validate_probs(probs)
   display_limits <- .validate_display_limits(display_limits)
@@ -115,7 +121,25 @@ hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
     radius_fraction <- scaled_radius / max(scaled_radius)
   }
   ring <- pmin(floor(radius_fraction * n_rings) + 1L, n_rings)
-  band_of_ring <- pmax(1L, pmin(nb, round(seq(1, nb, length.out = n_rings))))
+  if (identical(sampling, "wavelength")) {
+    if (!cb$has_wavelengths) {
+      cli::cli_abort("Wavelength sampling requires wavelength metadata.")
+    }
+    fraction <- if (n_rings == 1L) 0 else seq(0, 1, length.out = n_rings)
+    # Convex endpoint arithmetic also accommodates an overflowing raw span.
+    targets <- (1 - fraction) * cb$coordinates[1L] + fraction * cb$coordinates[nb]
+    band_of_ring <- vapply(targets, function(target) {
+      which.min(abs(cb$coordinates - target))
+    }, integer(1))
+    target_errors <- cb$coordinates[band_of_ring] - targets
+  } else {
+    targets <- seq(1, nb, length.out = n_rings)
+    band_of_ring <- pmax(1L, pmin(nb, round(targets)))
+    target_errors <- band_of_ring - targets
+  }
+  ring_pixel_counts <- tabulate(as.integer(ring), nbins = n_rings)
+  empty_rings <- which(ring_pixel_counts == 0L)
+  repeated_rings <- which(duplicated(band_of_ring))
 
   out <- matrix(NA_real_, nrow_i, ncol_i)
   for (k in seq_len(n_rings)) {
@@ -138,11 +162,14 @@ hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
   } else {
     "band-index coordinates"
   }
-  subtitle <- sprintf("%d rings; linear band-index sampling (%s)",
-                      n_rings, coordinate_note)
+  sampling_note <- if (sampling == "index") "linear band-index sampling" else
+    "equally spaced wavelength targets; nearest measured bands"
+  subtitle <- sprintf("%d rings; %s (%s)", n_rings, sampling_note, coordinate_note)
   caption <- .wrap_caption(paste(
     .stretch_caption(st, value_label = value_label),
     sprintf("Ring bands: %s", paste(band_of_ring, collapse = ", ")),
+    sprintf("%d repeated selections; %d empty rings", length(repeated_rings), length(empty_rings)),
+    "Spatial composition; unequal annular areas do not estimate the spectral distribution",
     sep = "; "
   ))
 
@@ -155,6 +182,11 @@ hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
     p, cb,
     quantity = list(name = "radial band sample", value_label = value_label),
     selection = list(centre = as.numeric(centre), n_rings = n_rings,
+                     sampling = sampling, requested_targets = targets,
+                     target_units = if (sampling == "wavelength") "nm" else "band index",
+                     target_errors = target_errors,
+                     ring_pixel_counts = ring_pixel_counts,
+                     empty_rings = empty_rings, repeated_rings = repeated_rings,
                      ring_band_indices = as.integer(band_of_ring),
                      ring_coordinates = cb$coordinates[band_of_ring]),
     missingness = list(policy = "propagate", valid_pixels = st$finite_count,
@@ -180,6 +212,17 @@ hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
 #' @inheritParams hsa_mandala
 #' @param normalise Logical. Divide by the number of band steps, so the value
 #'   is a mean absolute step rather than a total. Default `TRUE`.
+#' @param normalization `NULL` preserves `normalise`; otherwise `"total"`,
+#'   `"mean_step"`, or `"wavelength_span"` selects V, V/(B-1), or V/L, where
+#'   V = sum(abs(diff(x))) and L is the endpoint wavelength span. Contradictory
+#'   explicit `normalise` and `normalization` settings are rejected.
+#'
+#' @details Wavelength-span normalization requires at least two physical
+#'   wavelengths in nm and a finite positive representable span. It measures
+#'   mean absolute slope of the piecewise-linear spectrum in input-value units
+#'   per nm. Gaps bridge unobserved structure; this does not correct sampling
+#'   density, unresolved peaks, or measurement noise. Every band must be finite
+#'   at a valid pixel. Nonrepresentable requested arithmetic raises an error.
 #'
 #' @return A \pkg{ggplot2} object.
 #'
@@ -192,10 +235,21 @@ hsa_spectral_flux <- function(cube, palette = "inferno", normalise = TRUE,
                               stretch = c("percentile", "range", "none"),
                               probs = c(0.02, 0.98),
                               display_limits = c(0, 1),
-                              value_label = "input value", interpolate = TRUE) {
+                              value_label = "input value", interpolate = TRUE,
+                              normalization = NULL) {
+  legacy_explicit <- !missing(normalise)
   cb <- .as_cube(cube)
   stretch <- match.arg(stretch)
   normalise <- .validate_flag(normalise, "normalise")
+  legacy_normalization <- if (normalise) "mean_step" else "total"
+  if (is.null(normalization)) {
+    normalization <- legacy_normalization
+  } else {
+    normalization <- match.arg(normalization, c("total", "mean_step", "wavelength_span"))
+    if (legacy_explicit && !identical(normalization, legacy_normalization)) {
+      cli::cli_abort("Explicit {.arg normalise} and {.arg normalization} settings conflict.")
+    }
+  }
   probs <- .validate_probs(probs)
   display_limits <- .validate_display_limits(display_limits)
   value_label <- .validate_value_label(value_label)
@@ -205,29 +259,39 @@ hsa_spectral_flux <- function(cube, palette = "inferno", normalise = TRUE,
     cli::cli_abort("Need at least 2 bands to measure spectral change; got {d[3]}.")
   }
 
-  acc <- matrix(0, d[1], d[2])
-  for (b in seq_len(d[3] - 1L)) {
-    acc <- acc + abs(.cube_band(cb, b + 1L) - .cube_band(cb, b))
-  }
-  if (normalise) acc <- acc / (d[3] - 1L)
+  denominator <- switch(normalization, total = 1, mean_step = d[3] - 1L,
+                        wavelength_span = .spectral_intervals(cb)$span)
+  acc <- .spectral_change(cb, denominator = denominator)
 
   st <- .stretch(acc, stretch, probs, display_limits)
   df <- .as_long(st$values)
   df$raw_value <- as.vector(acc)
   domain <- if (identical(st$effective_method, "none")) display_limits else c(0, 1)
-  quantity <- if (normalise) "mean absolute band step" else "total absolute band step"
+  quantity <- switch(normalization, total = "total absolute band step",
+                     mean_step = "mean absolute band step",
+                     wavelength_span = "mean absolute spectral slope")
+  formula <- switch(normalization, total = "V = sum(abs(diff(x)))",
+                    mean_step = "V/(B-1); V = sum(abs(diff(x)))",
+                    wavelength_span = "V/L; V = sum(abs(diff(x))); L = last - first wavelength")
+  units <- if (normalization == "wavelength_span") paste(value_label, "per nm") else value_label
 
   p <- .render_scalar_image(
     df, palette, domain, interpolate,
     title = "Cumulative spectral change",
     subtitle = sprintf("%s across %d bands", quantity, d[3]),
-    caption = .wrap_caption(.stretch_caption(st, value_label = value_label))
+    caption = .wrap_caption(paste(
+      formula, paste("Units:", units), .stretch_caption(st, value_label = units),
+      if (normalization == "wavelength_span")
+        "Piecewise-linear mean absolute slope; unresolved structure and noise depend on sampling" else
+        "Adjacent measured-band changes depend on sampling", sep = "; "
+    ))
   )
 
   .attach_provenance(
     p, cb,
-    quantity = list(name = quantity, normalised = normalise,
-                    denominator = if (normalise) d[3] - 1L else 1L,
+    quantity = list(name = quantity, normalised = normalization != "total",
+                    normalization = normalization, formula = formula, units = units,
+                    denominator = denominator,
                     value_label = value_label),
     selection = list(band_indices = seq_len(d[3]),
                      coordinates = cb$coordinates),
