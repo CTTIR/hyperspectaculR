@@ -1,4 +1,4 @@
-The prepared package is **hyperspectaculR 0.2.0**. Candidate source checkpoint `d0baf4a` contains the final package, gallery, documentation and validation workflows. Subsequent roadmap/evidence updates do not change package calculations. The release is not tagged, merged or published; public-site deployment and live-URL checks follow an authorized release/deployment action.
+The prepared package is **hyperspectaculR 0.2.0**. Candidate source checkpoint `c655cd2` contains the final package, gallery, documentation and validation workflows. Its package calculations, help and vignette are unchanged from `d0baf4a`; the later fix preserves optional SVG baselines and completes public evidence links. A fresh full package check at `c655cd2` also passes with 0 errors, 0 warnings and 0 notes. The release is not tagged, merged or published; public-site deployment and live-URL checks follow an authorized release/deployment action.
 
 | Gate | Result and evidence |
 |---|---|
@@ -7,13 +7,13 @@ The prepared package is **hyperspectaculR 0.2.0**. Candidate source checkpoint `
 | Coverage | 95.43%; reusable CI now enforces a 90% floor. |
 | House lint | Zero findings; reusable lint is blocking. |
 | Exact R minimum, current plotting | R 4.1.0 + ggplot2 4.0.3 + patchwork 1.3.2: 554 passing assertions, all four SVG baselines, no failures/warnings/skips. |
-| Exact R and selected ggplot minimum | R 4.1.0 + ggplot2 3.4.0 + patchwork 1.1.3: 550 passing numerical assertions, no failures/warnings; three rendering blocks (four SVG baselines) deliberately excluded. |
+| Exact R and selected ggplot minimum | R 4.1.0 + ggplot2 3.4.0 + patchwork 1.1.3: 550 passing numerical assertions, no failures/warnings; three rendering blocks (four SVG baselines) deliberately excluded. Enabled, disabled and unavailable-package gates preserve all four baseline files byte-for-byte. |
 | Public figures | All 11 synthetic gallery/study artifacts reproduce byte-for-byte; six principal figures visually checked at intended export sizes. Captions and legends fit. |
 | Site assets | Fresh pkgdown output resolves all required local images, page/file links and copied evidence/source links; final evidence refresh checked separately. |
 | Scientific interpretation | Independent [sampling study](sampling.md) (8,080 realizations) and [histogram study](density-resolution.md) (120 band/settings records) preserve definitions, exclusions and limitations. |
 | Performance | [26 benchmark records](benchmarks.csv), comprising 12 baseline and 14 candidate cases, compare time, allocation and RSS using the same protocol. [Tradeoffs are explicit](performance.md). |
 | Optional instrument integration | [Eight local Cubert renderings](laboratory-integration.md) build without warnings and preserve the input object; reader diagnostic and unavailable instrument/clinical coverage are separately disclosed. |
-| Scoped implementation review | Numerical tasks passed; publication task final review in progress. |
+| Scoped implementation review | All four implementation tasks passed scoped reviews; the final snapshot/site integration fixes were independently re-reviewed. |
 | Whole-branch review | Pending final candidate evidence. |
 | Remote platforms | New candidate workflows are prepared; macOS/Windows and hosted minimum-version runs are not yet claimed as executed. |
 
