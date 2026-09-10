@@ -452,7 +452,7 @@ hsa_spectral_density <- function(cube, nbins = 128L, limits = NULL,
     ),
     sprintf("Display: %s", display_note),
     paste(
-      "White mean and dashed 5-95% pixel envelope describe the retained pixel",
+      "White binned mean and dashed binned 5-95% pixel envelope describe the retained pixel",
       "distribution and are not confidence intervals"
     ),
     geometry_note, reference_note

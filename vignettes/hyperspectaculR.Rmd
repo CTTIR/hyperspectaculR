@@ -74,8 +74,10 @@ hsa_provenance(hsa_fusion(cube, red = c(545, 555), green = c(525, 535),
 
 `missing = "propagate"` requires every selected band. `"available"` averages
 finite contributors separately by channel, still requiring all three channels
-to have a contribution. It changes the contributing population and records its
-counts. Missing RGB values are transparent.
+to have a contribution. It changes the contributing population and records
+each channel's selected-band count, minimum/maximum contributors,
+complete-pixel count and no-contributor-pixel count. Per-pixel contributor
+counts are not retained. Missing RGB values are transparent.
 
 ```{r raw-domain}
 p <- hsa_mandala(cube, n_rings = 8, stretch = "none",

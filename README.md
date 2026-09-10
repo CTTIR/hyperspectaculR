@@ -56,7 +56,7 @@ cube$data[10, 10, 2] <- Inf
 p <- hsa_fusion(cube, red = 17:24, green = 9:16, blue = 1:8)
 q <- hsa_fusion(cube, red = 17:24, green = 9:16, blue = 1:8,
                 missing = "available")
-hsa_provenance(q)$missingness  # inspect changing contributor counts
+hsa_provenance(q)$missingness  # inspect per-channel contributor summaries
 
 # Extracting $data alone drops cube-level mask/wavelength fields.
 # A plain array has band-index coordinates unless attributes provide metadata.
@@ -74,6 +74,10 @@ fusion uses disjoint contiguous index thirds, highest indices to red,
 regardless of `by`. Explicit wavelength targets select the nearest measured
 band, ties toward the shorter wavelength. Index requests are whole indices;
 physical requests require strictly increasing wavelength metadata in nm.
+
+Available-case provenance retains each channel's selected-band count,
+minimum/maximum contributors, complete-pixel count and no-contributor-pixel
+count. It does not retain a contributor count for every spatial pixel.
 
 Range and type-7 percentile stretches map raw values to `[0, 1]`. Collapsed
 percentile limits fall back to the finite range; constant data map to the dark
