@@ -29,5 +29,10 @@ rows <- lapply(paths, function(path) {
   }
   row
 })
+columns <- Reduce(union, lapply(rows, names))
+rows <- lapply(rows, function(row) {
+  for (name in setdiff(columns, names(row))) row[[name]] <- NA_real_
+  row[columns]
+})
 utils::write.csv(do.call(rbind, rows), args[2L], row.names = FALSE)
 cat("Wrote", length(rows), "records to", args[2L], "\n")
