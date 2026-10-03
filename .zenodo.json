@@ -1,9 +1,8 @@
 {
   "upload_type": "software",
   "title": "hyperspectaculR: Artistic visualisation of hyperspectral imaging data",
-  "version": "0.1.0",
-  "publication_date": "2026-08-11",
-  "description": "<p>hyperspectaculR provides tools for loading, processing and creating artistic visualisations from hyperspectral imaging data, with particular support for recordings from TIVITA Suite systems. It generates three-dimensional spectral sculptures, animated band scans, RGB composites and abstract renderings derived from spectral structure, alongside conventional spectral analysis. The emphasis is on communication and outreach rather than quantitative measurement, turning spectral cubes into images intended for presentation and display.</p>",
+  "version": "0.2.0",
+  "description": "<p>Artistic compositions and descriptive summaries from hyperspectral imaging cubes and numeric arrays: radial spectral mandalas, cumulative spectral change, multi-band RGB fusion, exact spectral density, and experimental RMS spectral slope and within-pixel spectral quartiles. Returns composable ggplot objects with explicit validity, display domains and original-rendering provenance. Recording readers, calibration, three-dimensional sculptures and animations are outside this package.</p>",
   "creators": [
     {
       "name": "Heller, Raban",
@@ -30,5 +29,5 @@
       "resource_type": "software"
     }
   ],
-  "notes": "Prepared draft. Not yet published."
+  "notes": "Prepared 0.2.0 development candidate. Not yet published."
 }

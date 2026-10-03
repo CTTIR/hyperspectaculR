@@ -12,5 +12,4 @@ jobs:
   lint:
     uses: CTTIR/.github/.github/workflows/lint.yaml@main
     with:
-      # Report-only until this package house-linter count reaches zero.
-      blocking: false
+      blocking: true
