@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html"><img src="../logo.svg" alt="" class="themakr-navbar-logo">hyperspectaculR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,6 +37,19 @@
       <small>Source: <a href="https://github.com/CTTIR/hyperspectaculR/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0" id="hyperspectaculr-020-development-candidate">hyperspectaculR 0.2.0 (development candidate)<a class="anchor" aria-label="anchor" href="#hyperspectaculr-020-development-candidate"></a></h2>
+<ul><li>Validate real numeric cubes, optional spatial masks and strictly increasing physical wavelengths; keep absent wavelengths as band indices.</li>
+<li>Preserve invalid image pixels as transparent. Correct default fusion thirds and expose explicit available-contributor fusion with recorded counts.</li>
+<li>Fix raw display domains, zero/constant dark endpoints and collapsed percentile fallbacks. Retain raw values and complete enhancement records.</li>
+<li>Expose <code><a href="../reference/hsa_provenance.html">hsa_provenance()</a></code> for compact original-rendering records, including selections, exclusions, endpoints and fallbacks; inspect patchwork components.</li>
+<li>Make density histograms exact with irregular-coordinate rectangles, retained population accounting, missing-band overlay gaps and global raw references.</li>
+<li>Add wavelength-span flux normalization and wavelength-target mandala sampling. Preserve legacy argument order and <code>normalise</code>; reject contradictory options.</li>
+<li>Add experimental nonnegative RMS spectral slope and equal-band type-7 quartiles, with explicit units, shared quartile geometry and sampling limits.</li>
+<li>Bound large selection labels while retaining full provenance; avoid redundant band-buffer copies and use a conservative ordinary-range flux path with the full exponent-based calculation retained for extreme arithmetic.</li>
+<li>Replace recording-dependent public figures with a deterministic synthetic gallery, regenerate help and add rendering/minimum-compatibility checks.</li>
+<li>Require ggplot2 &gt;= 3.4.0; retain R &gt;= 4.1.0. Invalid metadata, counts, probabilities, indices, groups and out-of-domain raw values now error.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="hyperspectaculr-010">hyperspectaculR 0.1.0<a class="anchor" aria-label="anchor" href="#hyperspectaculr-010"></a></h2>
 <p>First release. Publication-grade artistic visualisation of hyperspectral imagery, built on the <code>hsi_cube</code> class from <code>hyperspectR</code>.</p>

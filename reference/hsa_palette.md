@@ -1,9 +1,9 @@
 # Perceptually Uniform Palettes for Spectral Imagery
 
-Returns colour ramps suitable for scientific imagery. All options are
-perceptually uniform and monotonic in lightness, so ordering survives
-greyscale printing and is legible to colourblind readers — which rules
-out the rainbow ramps that make striking but misleading figures.
+Returns colour ramps suitable for scientific imagery. The palettes other
+than `"turbo"` are perceptually uniform and monotonic in lightness, so
+ordering survives greyscale printing and remains legible to colourblind
+readers. `"turbo"` is retained with a warning for compatibility.
 
 ## Usage
 

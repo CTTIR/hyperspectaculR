@@ -1,5 +1,40 @@
 # Changelog
 
+## hyperspectaculR 0.2.0 (development candidate)
+
+- Validate real numeric cubes, optional spatial masks and strictly
+  increasing physical wavelengths; keep absent wavelengths as band
+  indices.
+- Preserve invalid image pixels as transparent. Correct default fusion
+  thirds and expose explicit available-contributor fusion with recorded
+  counts.
+- Fix raw display domains, zero/constant dark endpoints and collapsed
+  percentile fallbacks. Retain raw values and complete enhancement
+  records.
+- Expose
+  [`hsa_provenance()`](https://cttir.github.io/hyperspectaculR/reference/hsa_provenance.md)
+  for compact original-rendering records, including selections,
+  exclusions, endpoints and fallbacks; inspect patchwork components.
+- Make density histograms exact with irregular-coordinate rectangles,
+  retained population accounting, missing-band overlay gaps and global
+  raw references.
+- Add wavelength-span flux normalization and wavelength-target mandala
+  sampling. Preserve legacy argument order and `normalise`; reject
+  contradictory options.
+- Add experimental nonnegative RMS spectral slope and equal-band type-7
+  quartiles, with explicit units, shared quartile geometry and sampling
+  limits.
+- Bound large selection labels while retaining full provenance; avoid
+  redundant band-buffer copies and use a conservative ordinary-range
+  flux path with the full exponent-based calculation retained for
+  extreme arithmetic.
+- Replace recording-dependent public figures with a deterministic
+  synthetic gallery, regenerate help and add
+  rendering/minimum-compatibility checks.
+- Require ggplot2 \>= 3.4.0; retain R \>= 4.1.0. Invalid metadata,
+  counts, probabilities, indices, groups and out-of-domain raw values
+  now error.
+
 ## hyperspectaculR 0.1.0
 
 First release. Publication-grade artistic visualisation of hyperspectral

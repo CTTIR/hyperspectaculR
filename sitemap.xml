@@ -2,6 +2,7 @@
 <url><loc>https://cttir.github.io/hyperspectaculR/404.html</loc></url>
 <url><loc>https://cttir.github.io/hyperspectaculR/LICENSE-text.html</loc></url>
 <url><loc>https://cttir.github.io/hyperspectaculR/LICENSE.html</loc></url>
+<url><loc>https://cttir.github.io/hyperspectaculR/ROADMAP.html</loc></url>
 <url><loc>https://cttir.github.io/hyperspectaculR/articles/hyperspectaculR.html</loc></url>
 <url><loc>https://cttir.github.io/hyperspectaculR/articles/index.html</loc></url>
 <url><loc>https://cttir.github.io/hyperspectaculR/authors.html</loc></url>
@@ -11,8 +12,11 @@
 <url><loc>https://cttir.github.io/hyperspectaculR/reference/hsa_fusion.html</loc></url>
 <url><loc>https://cttir.github.io/hyperspectaculR/reference/hsa_mandala.html</loc></url>
 <url><loc>https://cttir.github.io/hyperspectaculR/reference/hsa_palette.html</loc></url>
+<url><loc>https://cttir.github.io/hyperspectaculR/reference/hsa_provenance.html</loc></url>
 <url><loc>https://cttir.github.io/hyperspectaculR/reference/hsa_spectral_density.html</loc></url>
 <url><loc>https://cttir.github.io/hyperspectaculR/reference/hsa_spectral_flux.html</loc></url>
+<url><loc>https://cttir.github.io/hyperspectaculR/reference/hsa_spectral_gradient.html</loc></url>
+<url><loc>https://cttir.github.io/hyperspectaculR/reference/hsa_spectral_quartiles.html</loc></url>
 <url><loc>https://cttir.github.io/hyperspectaculR/reference/hsa_theme.html</loc></url>
 <url><loc>https://cttir.github.io/hyperspectaculR/reference/hyperspectaculR-package.html</loc></url>
 <url><loc>https://cttir.github.io/hyperspectaculR/reference/index.html</loc></url>

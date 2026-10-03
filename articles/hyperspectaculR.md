@@ -1,249 +1,338 @@
-# Making hyperspectral figures worth looking at
+# Compositions with inspectable spectral quantities
 
-A hyperspectral cube holds a full spectrum at every pixel, and almost
-every figure made from one throws that away — a single band, or three
-bands pushed into red, green and blue. `hyperspectaculR` is for the
-other kind of figure: compositions that could not be produced from any
-single wavelength, made to be looked at rather than measured off.
+The 0.2.0 candidate creates compositions and descriptive summaries from
+an `hsi_cube` or real numeric `(rows, cols, bands)` array. Reading
+recordings and calibration happen upstream. The default label is **input
+value**: a range such as 0–1 does not establish calibrated reflectance.
+These plots do not support physiological inference.
 
-It reads nothing and analyses nothing. Reading belongs to
-[`tivis.r`](https://github.com/CTTIR/tivis.r) and
-[`cuvis.r`](https://github.com/CTTIR/cuvis.r); the cube class and the
-analysis pipeline belong to
-[`hyperspectR`](https://github.com/CTTIR/hyperspectR). This package
-takes an `hsi_cube` and returns a `ggplot`.
-
-Everything below runs on a small synthetic cube bundled with the
-package, so the vignette builds without any recorded data.
+## Inputs and missing observations
 
 ``` r
 
-cube <- hsa_demo_cube()
-dim(cube$data)
-#> [1] 48 64 24
-range(cube$wavelengths)
-#> [1] 500 615
+cube <- hsa_demo_cube(rows = 24, cols = 32, bands = 12, seed = 42)
+cube$mask <- matrix(TRUE, 24, 32)
+cube$mask[1:3, ] <- FALSE
+cube$data[10, 10, 2] <- Inf
+cube$data[11, 10, 3] <- NA_real_
 ```
 
-## Start with the distribution
-
-Before any of the images, it is worth looking at what is actually in the
-cube.
-[`hsa_spectral_density()`](https://cttir.github.io/hyperspectaculR/reference/hsa_spectral_density.md)
-bins every pixel’s reflectance against wavelength and draws the joint
-distribution, with the mean spectrum and a 5–95% envelope threaded
-through it.
+A mask must be a logical spatial matrix without missing entries. `FALSE`
+excludes a pixel; nonfinite observations are excluded separately.
+Metadata must contain one strictly increasing finite wavelength in nm
+per band. Arrays can carry `mask` and `wavelengths` attributes. Without
+wavelengths the coordinates are **band indices**; physical selection and
+slopes require nm.
 
 ``` r
 
-hsa_spectral_density(cube)
+hsa_spectral_density(cube$data, nbins = 32)
 ```
 
-![](hyperspectaculR_files/figure-html/density-1.png)
+![](hyperspectaculR_files/figure-html/index-density-1.png)
 
-This is the only composition here that is not an image, and it is the
-one the others should be read against. Every image below applies a
-contrast stretch; this shows the distribution that stretch is applied
-to. Passing `show_limits = TRUE` draws those limits straight onto it, so
-you can see whether they sit sensibly inside the data or are cutting
-into it.
+## Selection and display domains
 
 ``` r
 
-hsa_spectral_density(cube, show_limits = TRUE)
-```
-
-![](hyperspectaculR_files/figure-html/density-limits-1.png)
-
-Two details matter for trusting the figure. Values outside the range are
-**dropped, not clipped** — clipping would pile their mass into the end
-bins and manufacture bright edges at the extremes, which is exactly the
-artefact this plot exists to expose. And counts are shown on a `log1p`
-scale by default, because reflectance histograms are heavy-tailed and a
-linear scale shows only the mode; the colourbar labels are
-back-transformed, so the legend still reads true counts.
-
-On real recordings this is often where problems surface first. A capture
-whose mass piles onto a few discrete reflectance values is quantised —
-too few photons divided by a white reference — and no amount of careful
-rendering downstream will put information back.
-
-## Four compositions
-
-### A radial spectral sweep
-
-[`hsa_mandala()`](https://cttir.github.io/hyperspectaculR/reference/hsa_mandala.md)
-draws concentric annuli, each taken from a different wavelength: the
-innermost ring is the shortest wavelength, the outermost the longest.
-One image, sweeping the whole spectral axis outward from a centre.
-
-``` r
-
-hsa_mandala(cube)
+p <- hsa_mandala(cube, n_rings = 8, sampling = "wavelength")
+p
 ```
 
 ![](hyperspectaculR_files/figure-html/mandala-1.png)
 
-Fewer rings give bolder banding; more rings sample the spectrum finely
-enough that the transition reads as continuous.
-
 ``` r
 
-hsa_mandala(cube, n_rings = 8)
+hsa_provenance(p)$selection$ring_band_indices
+#> [1]  1  3  4  6  7  9 10 12
 ```
 
-![](hyperspectaculR_files/figure-html/mandala-rings-1.png)
-
-The centre is yours to choose, which matters when the subject is not in
-the middle of the frame.
-
-``` r
-
-hsa_mandala(cube, centre = c(20, 15), n_rings = 24)
-```
-
-![](hyperspectaculR_files/figure-html/mandala-centre-1.png)
-
-### How much a pixel moves across the spectrum
-
-[`hsa_spectral_flux()`](https://cttir.github.io/hyperspectaculR/reference/hsa_spectral_flux.md)
-sums the absolute change between consecutive bands. Flat spectra go
-dark; pixels whose reflectance swings across the spectrum light up.
+Default mandala targets are linear in band index. Physical targets are
+equally spaced in nm and select nearest measured bands, with ties toward
+shorter wavelengths. Repeated selections and empty rings preserve
+geometry; the full selection is in provenance. Unequal ring areas are a
+spatial composition, not a spectral distribution estimate. One ring
+selects the first band.
 
 ``` r
 
-hsa_spectral_flux(cube)
-```
-
-![](hyperspectaculR_files/figure-html/flux-1.png)
-
-This is not a variance map. Variance is blind to the order of the bands,
-whereas this responds to spectral *shape* — two pixels with identical
-variance score differently if one changes smoothly and the other
-oscillates.
-
-### Colour from band groups
-
-[`hsa_fusion()`](https://cttir.github.io/hyperspectaculR/reference/hsa_fusion.md)
-builds a composite by averaging three groups of bands rather than
-picking three wavelengths. Averaging suppresses per-band sensor noise,
-so the result is smoother and more saturated than a three-band
-composite, while remaining a simple and disclosable operation.
-
-``` r
-
-hsa_fusion(cube)
+strict <- hsa_fusion(cube)
+available <- hsa_fusion(cube, red = 9:12, green = 5:8, blue = 1:4,
+                        missing = "available")
+available
+#> Warning: Removed 96 rows containing missing values or values outside the scale range
+#> (`geom_raster()`).
 ```
 
 ![](hyperspectaculR_files/figure-html/fusion-1.png)
 
-Groups can be given as wavelengths when that is how you think about the
-subject:
+``` r
+
+hsa_provenance(available)$missingness$contributors
+#> $red
+#> $red$selected_bands
+#> [1] 4
+#> 
+#> $red$minimum
+#> [1] 0
+#> 
+#> $red$maximum
+#> [1] 4
+#> 
+#> $red$complete_pixels
+#> [1] 672
+#> 
+#> $red$no_contributor_pixels
+#> [1] 96
+#> 
+#> 
+#> $green
+#> $green$selected_bands
+#> [1] 4
+#> 
+#> $green$minimum
+#> [1] 0
+#> 
+#> $green$maximum
+#> [1] 4
+#> 
+#> $green$complete_pixels
+#> [1] 672
+#> 
+#> $green$no_contributor_pixels
+#> [1] 96
+#> 
+#> 
+#> $blue
+#> $blue$selected_bands
+#> [1] 4
+#> 
+#> $blue$minimum
+#> [1] 0
+#> 
+#> $blue$maximum
+#> [1] 4
+#> 
+#> $blue$complete_pixels
+#> [1] 670
+#> 
+#> $blue$no_contributor_pixels
+#> [1] 96
+```
+
+All default RGB groups are disjoint contiguous index thirds, high bands
+to red, even with `by = "wavelength"`. Explicit groups must all be
+supplied. They may overlap between channels; duplicates within a group
+are errors. A one-band explicit fusion is supported. Wavelength targets
+must be in range and resolve to distinct bands within each group:
 
 ``` r
 
-wl <- cube$wavelengths
-hsa_fusion(cube, red = wl[22], green = wl[12], blue = wl[2], by = "wavelength")
+hsa_provenance(hsa_fusion(cube, red = c(545, 555), green = c(525, 535),
+                          blue = c(500, 510), by = "wavelength"))$selection
+#> $by
+#> [1] "wavelength"
+#> 
+#> $default
+#> [1] FALSE
+#> 
+#> $red
+#> $red$requested
+#> [1] 545 555
+#> 
+#> $red$indices
+#> [1] 10 12
+#> 
+#> $red$coordinates
+#> [1] 545 555
+#> 
+#> 
+#> $green
+#> $green$requested
+#> [1] 525 535
+#> 
+#> $green$indices
+#> [1] 6 8
+#> 
+#> $green$coordinates
+#> [1] 525 535
+#> 
+#> 
+#> $blue
+#> $blue$requested
+#> [1] 500 510
+#> 
+#> $blue$indices
+#> [1] 1 3
+#> 
+#> $blue$coordinates
+#> [1] 500 510
 ```
 
-![](hyperspectaculR_files/figure-html/fusion-wl-1.png)
-
-## Saying what you did to the image
-
-The density plot above shows the distribution; the images apply a
-stretch to it. That stretch is what makes hyperspectral data legible on
-a screen, and also the easiest way to make a figure imply something the
-data does not. So every function here captions the stretch it applied
-and the limits it used:
+`missing = "propagate"` requires every selected band. `"available"`
+averages finite contributors separately by channel, still requiring all
+three channels to have a contribution. It changes the contributing
+population and records each channel’s selected-band count,
+minimum/maximum contributors, complete-pixel count and
+no-contributor-pixel count. Per-pixel contributor counts are not
+retained. Missing RGB values are transparent.
 
 ``` r
 
-hsa_mandala(cube)$labels$caption
-#> [1] "Linear stretch between the 2% and 98% percentiles [0.1694, 0.4918]"
-hsa_spectral_flux(cube, stretch = "range")$labels$caption
-#> [1] "Linear stretch over [0.006715, 0.02887]"
-hsa_mandala(cube, stretch = "none")$labels$caption
-#> [1] "No contrast stretch applied"
-hsa_spectral_density(cube)$labels$caption
-#> [1] "128 bins over [0.1075, 0.5753]; values outside dropped, not clipped; log1p counts. White line: mean; dashed: 5-95%"
+p <- hsa_mandala(cube, n_rings = 8, stretch = "none",
+                 display_limits = c(-1, 1))
+hsa_provenance(p)$enhancement
+#> $limits
+#> [1] -1  1
+#> 
+#> $requested_method
+#> [1] "none"
+#> 
+#> $effective_method
+#> [1] "none"
+#> 
+#> $fallback
+#> NULL
+#> 
+#> $probs
+#> [1] 0.02 0.98
+#> 
+#> $quantile_type
+#> [1] 7
+#> 
+#> $clipped_below
+#> [1] 0
+#> 
+#> $clipped_above
+#> [1] 0
+#> 
+#> $finite_count
+#> [1] 672
+#> 
+#> $excluded_count
+#> [1] 96
+#> 
+#> $display_limits
+#> [1] -1  1
 ```
 
-That caption travels with the figure. If a reviewer asks what was done
-to the image, the answer is printed underneath it.
-
-## Colour that survives the journey
-
-[`hsa_palette()`](https://cttir.github.io/hyperspectaculR/reference/hsa_palette.md)
-offers only ramps that are monotonic in lightness, so ordering is
-preserved in greyscale printing and remains legible to colourblind
-readers.
+Range and type-7 percentile stretches map to `[0, 1]`. A collapsed
+percentile interval falls back to the finite range; constants map to the
+dark endpoint. `"none"` preserves raw values and requires them to fit
+the fixed domain. The record includes requested/effective method,
+fallback, raw endpoints and clipping/exclusion counts. Plot data keep
+`raw_value` (or raw RGB channels).
 
 ``` r
 
-head(hsa_palette("magma", n = 6))
-#> [1] "#000004FF" "#3B0F70FF" "#8C2981FF" "#DE4968FF" "#FE9F6DFF" "#FCFDBFFF"
+changed <- p + ggplot2::labs(title = "Selected spatial scene") +
+  ggplot2::theme(plot.title = ggplot2::element_text(size = 16))
+identical(hsa_provenance(p), hsa_provenance(changed))
+#> [1] TRUE
 ```
 
-Rainbow-like ramps are excluded on purpose, with one exception kept for
-screen-only use — and it tells you:
+Provenance describes the original rendering. Ordinary theme/lab
+additions preserve it; arbitrary later plot edits are not recalculated.
+Inspect each component before patchwork composition. The accessor
+rejects a combined patchwork. Records contain no source cube or
+arbitrary input metadata.
+
+## Exact density populations
 
 ``` r
 
-invisible(hsa_palette("turbo", n = 4))
-#> Warning: "turbo" is not monotonic in lightness.
-#> ℹ It reads well on screen but loses ordering in greyscale; prefer "viridis" or
-#>   "magma" for print.
+density <- hsa_spectral_density(cube, nbins = 32, limits = c(.1, .6),
+                                normalise = "band", show_limits = TRUE)
+density
 ```
 
-## Composing figures
-
-Everything is a `ggplot`, so panels combine with `patchwork`, re-theme,
-and export through
-[`ggsave()`](https://ggplot2.tidyverse.org/reference/ggsave.html) at
-whatever size and resolution a journal wants. Nothing writes a file as a
-side effect.
+![](hyperspectaculR_files/figure-html/density-1.png)
 
 ``` r
 
-library(patchwork)
-hsa_fusion(cube) + hsa_spectral_flux(cube)
+accounting <- hsa_provenance(density)$missingness
+with(accounting, all(finite == below + kept + above))
+#> [1] TRUE
+with(accounting, all(eligible == finite + nonfinite))
+#> [1] TRUE
 ```
 
-![](hyperspectaculR_files/figure-html/patchwork-1.png)
+Limits include both endpoints, with right-closed interior bins. Outside
+values are dropped, not clipped. Band shares divide by retained counts.
+Empty bands have missing shares and gaps in the overlays. White binned
+means and 5–95% pixel envelopes describe retained populations, not
+confidence intervals. Gold lines use global raw finite eligible
+observations, including those outside histogram limits; they are
+separate from image enhancement limits. Automatic limits use type-7
+0.1–99.9% quantiles, with a disclosed finite-range or constant padding
+fallback. Irregular wavelengths have midpoint rectangle boundaries;
+single-band density discloses a width-one fallback. Raw `H`, breaks,
+references and accounting remain inspectable in the enhancement record.
 
-For print, export as vector where the composition allows it, or at
-300–600 dpi where it does not — these are raster images, so a
-high-resolution PNG or TIFF is usually the honest choice:
+## Sampling and experimental summaries
+
+For adjacent measured values, total variation is
+`V = sum(abs(diff(x)))`; default mean step is `V/(B-1)` in input-value
+units per measured step. `normalization = "wavelength_span"` computes
+`V/L` in input value per nm. A rise from 0 to 1 across 400 nm has mean
+steps 0.5 and 0.2 at three and six samples, while both physical slopes
+equal 0.0025 per nm. Physical units define the quantity; they do not
+correct missing peaks, noise or unequal sampling.
 
 ``` r
 
-ggplot2::ggsave("figure-1.png", hsa_mandala(cube),
-                width = 180, height = 130, units = "mm", dpi = 600)
+example <- structure(list(data = array(c(0, 2, 2), c(1, 1, 3)),
+                          wavelengths = c(500, 501, 505)), class = "hsi_cube")
+hsa_spectral_flux(example, normalization = "wavelength_span")$data$raw_value
+#> [1] 0.4
+hsa_spectral_gradient(example)$data$raw_value
+#> [1] 0.8944272
+hsa_spectral_gradient(cube)
 ```
 
-## Working from real recordings
+![](hyperspectaculR_files/figure-html/slopes-1.png)
 
-With `hyperspectR` installed, the same functions take real cubes from
-either supported instrument:
+The independently verified values are 0.4 and approximately 0.894427 per
+nm. Experimental RMS slope is `G = sqrt(sum(h * (diff(x)/h)^2)/L)` for
+wavelength intervals `h`. It is nonnegative, loses derivative sign, and
+is not a spatial gradient or uncertainty. Short intervals amplify noise.
+On a flat signal with independent noise SD `sigma`,
+`E[G^2] = 2 * sigma^2 / L * sum(1/h)`; increasing band count may
+increase this quantity. No smoothing or noise correction is applied.
+Both physical slopes bridge unobserved intervals with straight lines;
+interpolating extra points does not reconstruct absent information.
 
 ``` r
 
-library(hyperspectR)
-
-# TIVITA, via tivis.r -- no vendor SDK needed
-cube <- hs_read_tivita("2019_11_25_13_29_24_SpecCube.dat")
-
-# Cubert, via cuvis.r and the CUVIS SDK
-# cube <- hs_read_cubert("session.cu3s")
-
-hsa_fusion(cube, red = 850, green = 650, blue = 550, by = "wavelength")
+hsa_spectral_quartiles(cube)
 ```
 
-Both readers return the same `hsi_cube`, so nothing here changes between
-instruments — only the wavelengths in the caption.
+![](hyperspectaculR_files/figure-html/quartiles-1.png)
 
-A reasonable habit with an unfamiliar recording is to run
-`hsa_spectral_density(cube, show_limits = TRUE)` first. If the
-distribution is banded, truncated, or piled against one end, that is
-worth knowing before choosing how to render it — and worth saying in the
-figure caption either way.
+``` r
+
+quartile_example <- array(c(0, 1, 4, 9), c(1, 1, 4))
+hsa_spectral_quartiles(quartile_example)$data$raw_value
+#> [1] 0.75 2.50 5.25
+```
+
+Type-7 quartiles are `(0.75, 2.5, 5.25)`. Permuting the bands preserves
+them but can change flux. These experimental panels weight measured
+bands equally, discard order and depend on sampling density. They are
+not uncertainty intervals. All three panels share complete-spectrum
+validity and one pooled stretch/domain/legend. A single band gives
+identical panels. Experimental summaries offer descriptive comparisons,
+without universal instrument or sampling comparability.
+
+## Migration from 0.1.0
+
+Masked/nonfinite pixels, dark endpoints, fusion thirds, raw domains,
+density geometry and retained counts can change visible output. Missing
+wavelengths are now labelled as indices. New exports include provenance,
+RMS slope and quartiles. Existing argument order and `normalise` remain
+supported; conflicting explicit `normalise`/`normalization` values
+error. Malformed metadata, fractional or out-of-range indices, duplicate
+within-group selections, incomplete RGB requests, invalid
+counts/probabilities and raw values outside the display domain now fail
+explicitly. Entirely invalid outputs fail instead of producing an
+apparently measured blank image.

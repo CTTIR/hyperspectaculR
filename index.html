@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="index.html"><img src="logo.svg" alt="" class="themakr-navbar-logo">hyperspectaculR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,136 +65,90 @@
 <img src="logo.svg" class="logo" alt=""><h1 id="hyperspectaculr-">hyperspectaculR <a class="anchor" aria-label="anchor" href="#hyperspectaculr-"></a>
 </h1>
 </div>
-<p><a href="https://doi.org/10.5281/zenodo.21889974" class="external-link"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21889974.svg" alt="DOI"></a></p>
-<!-- badges: start -->
-
-<p>Publication-grade artistic visualisation of hyperspectral imagery.</p>
-<p>Where <a href="https://github.com/CTTIR/hyperspectR" class="external-link"><code>hyperspectR</code></a> renders cubes for <em>inspection</em> — quick looks, diagnostics, clinical index maps — <code>hyperspectaculR</code> renders them for <em>display</em>: figures meant to be looked at, in a paper or on a wall. It reads nothing and analyses nothing. It consumes the <code>hsi_cube</code> class and returns <code>ggplot</code> objects.</p>
+<p><a href="https://doi.org/10.5281/zenodo.21889974" class="external-link"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21889974.svg" alt="DOI"></a> <a href="https://github.com/CTTIR/hyperspectaculR/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/CTTIR/hyperspectaculR/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a> <a href="https://cttir.github.io/hyperspectaculR/"><img src="https://github.com/CTTIR/hyperspectaculR/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a></p>
+<p>Artistic compositions and descriptive summaries of hyperspectral imagery. The <strong>0.2.0 candidate</strong> consumes an <code>hsi_cube</code> or numeric <code>(rows, cols, bands)</code> array and returns composable ggplots. It does not read recordings, calibrate values or infer physiology. Readers such as <a href="https://github.com/CTTIR/hyperspectR" class="external-link">hyperspectR</a> provide upstream integration.</p>
+<p>Compositions use the spectral dimension to reveal spatial and spectral structure. Supported edge cases include single-band density, repeated mandala selections, overlapping fusion groups and singleton quartiles; these can reduce to a single-band result. Every figure records what was calculated and how it was displayed.</p>
 <div class="section level2">
-<h2 id="design">Design<a class="anchor" aria-label="anchor" href="#design"></a>
+<h2 id="install-and-reproduce">Install and reproduce<a class="anchor" aria-label="anchor" href="#install-and-reproduce"></a>
 </h2>
-<p><strong>Compositions that use the spectral axis.</strong> A false-colour picture of one band is not interesting; anything in this package should be impossible to produce from a single wavelength. A radial mandala sweeps the spectrum outward from a centre; a flux field measures how much a pixel’s reflectance moves across the spectrum; a fusion averages band <em>groups</em> rather than picking three wavelengths.</p>
-<p><strong>Every figure states its own enhancement.</strong> Contrast stretching is what makes hyperspectral data legible, and also what makes it easy to mislead. Every function captions the stretch it applied and the limits it used, so a striking figure remains a defensible one.</p>
-<p><strong>Perceptually uniform colour by default.</strong> <code><a href="reference/hsa_palette.html">hsa_palette()</a></code> offers only ramps that are monotonic in lightness, so ordering survives greyscale printing and is legible to colourblind readers. Asking for <code>turbo</code> warns you.</p>
-<p><strong>Everything returns a ggplot.</strong> Figures compose with <code>patchwork</code>, re-theme, and export reproducibly. Nothing writes a file as a side effect.</p>
-</div>
-<div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
-</h2>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"CTTIR/hyperspectaculR"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
-</h2>
+<p>Requires R &gt;= 4.1.0 and ggplot2 &gt;= 3.4.0. To install this candidate from a local checkout and regenerate its public synthetic gallery:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="ex">R</span> CMD INSTALL .</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="ex">Rscript</span> data-raw/make-showcase.R</span></code></pre></div>
+<p>For optional patchwork composition with ggplot2 3.4.0, the tested compatible version is patchwork 1.1.3; current patchwork requires a newer ggplot2 in practice. The minimum-compatibility workflow checks both selected old and current dependency combinations.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/CTTIR/hyperspectaculR" class="external-link">hyperspectaculR</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">cube</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/hsa_demo_cube.html">hsa_demo_cube</a></span><span class="op">(</span><span class="op">)</span>      <span class="co"># or any hyperspectR hsi_cube</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/hsa_mandala.html">hsa_mandala</a></span><span class="op">(</span><span class="va">cube</span><span class="op">)</span>            <span class="co"># radial spectral sweep</span></span>
-<span><span class="fu"><a href="reference/hsa_spectral_flux.html">hsa_spectral_flux</a></span><span class="op">(</span><span class="va">cube</span><span class="op">)</span>      <span class="co"># cumulative change across the spectrum</span></span>
-<span><span class="fu"><a href="reference/hsa_fusion.html">hsa_fusion</a></span><span class="op">(</span><span class="va">cube</span><span class="op">)</span>             <span class="co"># multi-band colour composite</span></span></code></pre></div>
-<p>With real data, via the reader packages:</p>
+<span><span class="va">cube</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/hsa_demo_cube.html">hsa_demo_cube</a></span><span class="op">(</span>seed <span class="op">=</span> <span class="fl">42</span><span class="op">)</span>  <span class="co"># 48 x 64 x 24; physical coordinates in nm</span></span>
+<span><span class="fu"><a href="reference/hsa_mandala.html">hsa_mandala</a></span><span class="op">(</span><span class="va">cube</span>, n_rings <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/hsa_spectral_flux.html">hsa_spectral_flux</a></span><span class="op">(</span><span class="va">cube</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/hsa_fusion.html">hsa_fusion</a></span><span class="op">(</span><span class="va">cube</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/hsa_spectral_density.html">hsa_spectral_density</a></span><span class="op">(</span><span class="va">cube</span>, nbins <span class="op">=</span> <span class="fl">64</span>, show_limits <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>The default script needs no recordings or reader packages. Seed, parameters, version and compact provenance are in <code>man/figures/gallery-provenance.R</code>. An explicit <code>HSA_SHOWCASE_LAB_RDS</code> or <code>HSA_SHOWCASE_CUBERT_PATH</code> may enable local laboratory integration under <code>showcase/laboratory</code>; failure still leaves the synthetic gallery and studies available. Calibration must come from known metadata or a documented calibration workflow, never from numeric range alone.</p>
+</div>
+<div class="section level2">
+<h2 id="validity-coordinates-and-display">Validity, coordinates and display<a class="anchor" aria-label="anchor" href="#validity-coordinates-and-display"></a>
+</h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/cttir/hyperspectR" class="external-link">hyperspectR</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">cube</span><span class="op">$</span><span class="va">mask</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="cn">TRUE</span>, <span class="fl">48</span>, <span class="fl">64</span><span class="op">)</span></span>
+<span><span class="va">cube</span><span class="op">$</span><span class="va">mask</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, <span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">FALSE</span></span>
+<span><span class="va">cube</span><span class="op">$</span><span class="va">data</span><span class="op">[</span><span class="fl">10</span>, <span class="fl">10</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">Inf</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/hsa_fusion.html">hsa_fusion</a></span><span class="op">(</span><span class="va">cube</span>, red <span class="op">=</span> <span class="fl">17</span><span class="op">:</span><span class="fl">24</span>, green <span class="op">=</span> <span class="fl">9</span><span class="op">:</span><span class="fl">16</span>, blue <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">8</span><span class="op">)</span></span>
+<span><span class="va">q</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/hsa_fusion.html">hsa_fusion</a></span><span class="op">(</span><span class="va">cube</span>, red <span class="op">=</span> <span class="fl">17</span><span class="op">:</span><span class="fl">24</span>, green <span class="op">=</span> <span class="fl">9</span><span class="op">:</span><span class="fl">16</span>, blue <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">8</span>,</span>
+<span>                missing <span class="op">=</span> <span class="st">"available"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/hsa_provenance.html">hsa_provenance</a></span><span class="op">(</span><span class="va">q</span><span class="op">)</span><span class="op">$</span><span class="va">missingness</span>  <span class="co"># inspect per-channel contributor summaries</span></span>
 <span></span>
-<span><span class="va">cube</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://cttir.github.io/hyperspectR/reference/hs_read_cubert.html" class="external-link">hs_read_cubert</a></span><span class="op">(</span><span class="st">"session.cu3s"</span><span class="op">)</span>   <span class="co"># Cubert, via cuvis.r</span></span>
-<span><span class="co"># cube &lt;- hs_read_tivita("..._SpecCube.dat")  # TIVITA, via tivis.r</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/hsa_fusion.html">hsa_fusion</a></span><span class="op">(</span><span class="va">cube</span>, red <span class="op">=</span> <span class="fl">750</span>, green <span class="op">=</span> <span class="fl">600</span>, blue <span class="op">=</span> <span class="fl">500</span>, by <span class="op">=</span> <span class="st">"wavelength"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Extracting $data alone drops cube-level mask/wavelength fields.</span></span>
+<span><span class="co"># A plain array has band-index coordinates unless attributes provide metadata.</span></span>
+<span><span class="fu"><a href="reference/hsa_spectral_density.html">hsa_spectral_density</a></span><span class="op">(</span><span class="va">cube</span><span class="op">$</span><span class="va">data</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/hsa_mandala.html">hsa_mandala</a></span><span class="op">(</span><span class="va">cube</span>, n_rings <span class="op">=</span> <span class="fl">12</span>, sampling <span class="op">=</span> <span class="st">"wavelength"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/hsa_fusion.html">hsa_fusion</a></span><span class="op">(</span><span class="va">cube</span>, red <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">590</span>, <span class="fl">605</span><span class="op">)</span>, green <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">555</span>, <span class="fl">570</span><span class="op">)</span>,</span>
+<span>           blue <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">505</span>, <span class="fl">520</span><span class="op">)</span>, by <span class="op">=</span> <span class="st">"wavelength"</span><span class="op">)</span></span></code></pre></div>
+<p>Masks exclude spatial pixels; <code>NA</code>, <code>NaN</code> and infinities exclude observations. Image quantities require their selected bands to be finite. Fusion defaults to <code>missing = "propagate"</code>; <code>"available"</code> averages each channel’s finite contributors and still requires a contribution in all three channels. Default fusion uses disjoint contiguous index thirds, highest indices to red, regardless of <code>by</code>. Explicit wavelength targets select the nearest measured band, ties toward the shorter wavelength. Index requests are whole indices; physical requests require strictly increasing wavelength metadata in nm.</p>
+<p>Available-case provenance retains each channel’s selected-band count, minimum/maximum contributors, complete-pixel count and no-contributor-pixel count. It does not retain a contributor count for every spatial pixel.</p>
+<p>Range and type-7 percentile stretches map raw values to <code>[0, 1]</code>. Collapsed percentile limits fall back to the finite range; constant data map to the dark endpoint. <code>stretch = "none"</code> preserves raw values and checks them against the fixed <code>display_limits</code> domain. Its endpoints must contain every finite rendered value. Scalar plot data retain <code>raw_value</code>; fusion retains <code>raw_r</code>, <code>raw_g</code>, <code>raw_b</code>. Value labels default to <strong>input value</strong>.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/hsa_mandala.html">hsa_mandala</a></span><span class="op">(</span><span class="va">cube</span>, n_rings <span class="op">=</span> <span class="fl">12</span>, stretch <span class="op">=</span> <span class="st">"none"</span>,</span>
+<span>                 display_limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, value_label <span class="op">=</span> <span class="st">"input value"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/hsa_provenance.html">hsa_provenance</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">$</span><span class="va">enhancement</span>  <span class="co"># endpoints, exclusions, method and fallback</span></span>
+<span><span class="va">p</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>plot.title <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">16</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"My scene"</span><span class="op">)</span></span></code></pre></div>
+<p><code>+ theme()</code> and <code>+ labs()</code> preserve original-rendering provenance. Arbitrary later edits are not recalculated. Inspect each component before assembling a patchwork; <code><a href="reference/hsa_provenance.html">hsa_provenance()</a></code> rejects the combined object.</p>
 </div>
 <div class="section level2">
-<h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a>
+<h2 id="synthetic-gallery">Synthetic gallery<a class="anchor" aria-label="anchor" href="#synthetic-gallery"></a>
 </h2>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<tbody>
-<tr>
-<td><code><a href="reference/hsa_mandala.html">hsa_mandala()</a></code></td>
-<td>Concentric annuli, each drawn from a different wavelength</td>
-</tr>
-<tr>
-<td><code><a href="reference/hsa_spectral_flux.html">hsa_spectral_flux()</a></code></td>
-<td>Cumulative absolute change between consecutive bands</td>
-</tr>
-<tr>
-<td><code><a href="reference/hsa_fusion.html">hsa_fusion()</a></code></td>
-<td>Colour composite from three averaged band groups</td>
-</tr>
-<tr>
-<td><code><a href="reference/hsa_spectral_density.html">hsa_spectral_density()</a></code></td>
-<td>Reflectance against wavelength across every pixel</td>
-</tr>
-<tr>
-<td><code><a href="reference/hsa_theme.html">hsa_theme()</a></code></td>
-<td>Dark, chrome-free theme for image panels</td>
-</tr>
-<tr>
-<td><code><a href="reference/hsa_palette.html">hsa_palette()</a></code></td>
-<td>Perceptually uniform colour ramps</td>
-</tr>
-<tr>
-<td><code><a href="reference/hsa_demo_cube.html">hsa_demo_cube()</a></code></td>
-<td>Deterministic synthetic cube for examples and tests</td>
-</tr>
-</tbody>
-</table>
+<div class="float">
+<img src="reference/figures/gallery-mandala.png" alt="Radial synthetic scene using twelve measured bands and disclosed band-index sampling"><div class="figcaption">Radial synthetic scene using twelve measured bands and disclosed band-index sampling</div>
+</div>
+<p>Mandala rings are spatial areas, not estimates of a spectral distribution. Physical targets may repeat measured bands; full ring selections and empty rings remain in provenance when captions abbreviate long selections.</p>
+<div class="float">
+<img src="reference/figures/gallery-flux.png" alt="Synthetic cumulative mean absolute change with its enhancement endpoints"><div class="figcaption">Synthetic cumulative mean absolute change with its enhancement endpoints</div>
+</div>
+<p>For adjacent measured values, total change is <code>V = sum(abs(diff(x)))</code>; default mean step is <code>V/(B-1)</code>. Both have input-value units (the latter per measured step). <code>normalization = "wavelength_span"</code> gives <code>V/L</code> in input value per nm, the mean absolute slope of a piecewise-linear spectrum across span <code>L</code>. For a noiseless rise from 0 to 1 across 400 nm, three and six bands give mean steps 0.5 and 0.2, but both give a physical slope of 0.0025 per nm. This does not establish universal sampling comparability: gaps miss unresolved peaks, and interpolation cannot recover them.</p>
+<div class="float">
+<img src="reference/figures/gallery-fusion.png" alt="Three-channel synthetic fusion showing compact actual group ranges and per-channel stretches"><div class="figcaption">Three-channel synthetic fusion showing compact actual group ranges and per-channel stretches</div>
+</div>
+<div class="float">
+<img src="reference/figures/gallery-density.png" alt="Exact synthetic spectral density with retained pixel envelope and global percentile references"><div class="figcaption">Exact synthetic spectral density with retained pixel envelope and global percentile references</div>
+</div>
+<p>Density bins include both outer limits and are right closed internally. Values outside the range are dropped, not clipped. Per band, <code>eligible = finite + nonfinite</code> and <code>finite = below + kept + above</code>; masked pixels are excluded from eligible counts. <code>normalise = "band"</code> divides by <strong>retained</strong> counts; empty bands have missing shares and gaps in overlays. White binned means and 5–95% pixel envelopes describe retained populations, not confidence intervals. Gold references use raw finite eligible observations, including those outside the displayed range; they are separate from image enhancement endpoints. Histogram rectangles use midpoint boundaries on irregular spectral grids; one band uses a disclosed coordinate width of one. Raw counts, breaks, references and accounting are available through <code><a href="reference/hsa_provenance.html">hsa_provenance()</a></code>.</p>
 </div>
 <div class="section level2">
-<h2 id="gallery">Gallery<a class="anchor" aria-label="anchor" href="#gallery"></a>
+<h2 id="experimental-descriptive-summaries">Experimental descriptive summaries<a class="anchor" aria-label="anchor" href="#experimental-descriptive-summaries"></a>
 </h2>
-<p><img src="showcase/cubert_fusion.png"></p>
-<p><img src="showcase/cubert_mandala.png"></p>
-<p><img src="showcase/cubert_density.png"></p>
-<p>The full gallery is in <a href="showcase"><code>showcase/</code></a>, regenerated by <code>data-raw/make-showcase.R</code> so that every image can be reproduced from the recording it came from.</p>
-<p>The density panel is worth reading before the other two. Here it shows mass piling onto discrete reflectance values — 1/2, 1/3, 1/4 — which is quantisation from very low photon counts divided by a white reference in the dark parts of the scene. None of the image compositions reveal that, which is the argument for including it.</p>
-<p>It is rendered from a laboratory scene rather than clinical recordings. The TIVITA archives this was developed against are patient imagery — an open surgical field, a patient’s foot — and rendering those to PNG does not make them publishable, so they are deliberately absent. Setting <code>HSA_SHOWCASE_CLINICAL=1</code> renders them into <code>showcase/clinical/</code>, which is gitignored, for local review only.</p>
+<div class="float">
+<img src="reference/figures/gallery-gradient.png" alt="Nonnegative RMS spectral slope of the synthetic cube with units and noise sensitivity stated"><div class="figcaption">Nonnegative RMS spectral slope of the synthetic cube with units and noise sensitivity stated</div>
+</div>
+<p><code><a href="reference/hsa_spectral_gradient.html">hsa_spectral_gradient()</a></code> computes <code>G = sqrt(sum(h * (diff(x)/h)^2)/L)</code> for wavelength intervals <code>h</code> and span <code>L</code>. It is nonnegative, in input value per nm, and requires physical coordinates. It is neither a signed derivative nor a spatial gradient. At wavelengths <code>(500, 501, 505)</code> with values <code>(0, 2, 2)</code>, mean absolute slope is 0.4 per nm and RMS slope is approximately 0.894427 per nm. Short intervals and noise can dominate. For independent noise of SD <code>sigma</code> on a flat signal, <code>E[G^2] = 2 * sigma^2 / L * sum(1/h)</code>; adding noisy bands can increase G.</p>
+<div class="float">
+<img src="reference/figures/gallery-quartiles.png" alt="Three within-pixel spectral quartile panels with a shared enhancement domain and visible legend"><div class="figcaption">Three within-pixel spectral quartile panels with a shared enhancement domain and visible legend</div>
+</div>
+<p><code><a href="reference/hsa_spectral_quartiles.html">hsa_spectral_quartiles()</a></code> gives type-7 25th, 50th and 75th percentiles, weighting <strong>measured bands equally</strong>. The values <code>(0, 1, 4, 9)</code> give <code>(0.75, 2.5, 5.25)</code>; reordering them preserves quartiles but can change flux. One pooled stretch and one legend apply to all three panels. These quantities discard spectral order, depend on sampling density and are not uncertainty intervals. Both new summaries are experimental, descriptive and require complete finite spectra. No physiological interpretation follows from them. See the <a href="planning/evidence/sampling.md">sampling evidence (source Markdown)</a> for independent examples, assumptions and reproducible experiments.</p>
 </div>
 <div class="section level2">
-<h2 id="status">Status<a class="anchor" aria-label="anchor" href="#status"></a>
+<h2 id="migrating-to-020">Migrating to 0.2.0<a class="anchor" aria-label="anchor" href="#migrating-to-020"></a>
 </h2>
-<p>Early. Four compositions are implemented and tested. Spectral gradient fields and spectral quartiles are next.</p>
-<p>Two items from an earlier draft have been <strong>dropped rather than ported</strong>, for the same reason: they fail the package’s own rule. A 3-D height surface is one scalar per pixel by definition, so its third dimension is a single band or a derived index — the spectral axis is gone. A band animation is a sequence of single-band images, so it fails frame by frame. Neither becomes defensible by being rendered more attractively.</p>
-<p>A note on provenance: an earlier version of this package shipped its own TIVITA reader and a gallery of 54 images. That reader misparsed the container, so every one of those images was rendered from meaningless bytes; both were removed. Reading now belongs to <a href="https://github.com/CTTIR/tivis.r" class="external-link"><code>tivis.r</code></a> and <a href="https://github.com/CTTIR/cuvis.r" class="external-link"><code>cuvis.r</code></a>, whose TIVITA ordering has since been corrected, and the gallery above is generated by a script rather than by hand so its provenance stays checkable.</p>
-</div>
-<div class="section level2">
-<h2 id="related-packages">Related packages<a class="anchor" aria-label="anchor" href="#related-packages"></a>
-</h2>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<thead><tr>
-<th>Package</th>
-<th>Role</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><a href="https://github.com/CTTIR/hyperspectR" class="external-link"><code>hyperspectR</code></a></td>
-<td>
-<code>hsi_cube</code> class, preprocessing, tissue indices</td>
-</tr>
-<tr>
-<td><a href="https://github.com/CTTIR/cuvis.r" class="external-link"><code>cuvis.r</code></a></td>
-<td>Cubert <code>.cu3s</code>, via the CUVIS SDK</td>
-</tr>
-<tr>
-<td><a href="https://github.com/CTTIR/tivis.r" class="external-link"><code>tivis.r</code></a></td>
-<td>TIVITA <code>SpecCube.dat</code>, pure R</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section level2">
-<h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
-</h2>
-<p>MIT</p>
+<p>Visible results can change: invalid image pixels are transparent; zero flux and constant images use the dark endpoint; default fusion thirds cover every band exactly once; raw display domains stay fixed; density coordinates, retained populations and reference lines are now explicit. Missing wavelengths are labelled as band indices, not nm. Experimental slope/quartile renderers and <code><a href="reference/hsa_provenance.html">hsa_provenance()</a></code> are new exports.</p>
+<p>Malformed masks or wavelengths, fractional/out-of-range indices, duplicate selections within a fusion group, incomplete explicit RGB groups, invalid counts/probabilities, conflicting flux normalization controls, and raw values outside <code>display_limits</code> now raise errors. Entirely invalid renderings fail clearly. Existing argument order and <code>normalise</code> flux behavior are retained; use the appended <code>normalization</code> selector for explicit physical units.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

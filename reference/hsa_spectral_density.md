@@ -1,8 +1,8 @@
 # Spectral Density
 
-The joint distribution of reflectance against wavelength across every
-pixel in the cube, drawn as a two-dimensional histogram: a luminous band
-of probability mass with the mean spectrum threaded through it.
+Draws the joint distribution of input values and spectral coordinates as
+an exact two-dimensional histogram. A binned mean and binned 5–95% pixel
+envelope are calculated from the retained histogram counts.
 
 ## Usage
 
@@ -15,7 +15,8 @@ hsa_spectral_density(
   normalise = c("none", "band"),
   palette = "mako",
   show_limits = FALSE,
-  probs = c(0.02, 0.98)
+  probs = c(0.02, 0.98),
+  value_label = "input value"
 )
 ```
 
@@ -24,29 +25,33 @@ hsa_spectral_density(
 - cube:
 
   An `hsi_cube` (from hyperspectR) or a 3-D array with dimensions
-  `(rows, cols, bands)`.
+  `(rows, cols, bands)`, of integer or double values. Optional
+  `wavelengths` metadata must be finite, unique and strictly increasing
+  in nm. Without it, coordinates are band indices. An optional logical
+  spatial `mask` has dimensions `(rows, cols)` and no missing entries;
+  `FALSE` excludes a pixel. Arrays may carry these as attributes; an
+  `hsi_cube` may carry them as list fields. Nonfinite observations are
+  excluded.
 
 - nbins:
 
-  Number of reflectance bins. Default `128`.
+  Number of value bins. Must be an integer of at least two. Default
+  `128`.
 
 - limits:
 
-  Numeric length-2 reflectance range to bin over. `NULL` (default) uses
-  the 0.1st and 99.9th percentiles of the finite data, so a handful of
-  saturated pixels cannot flatten the whole figure.
+  Numeric length-two value range to bin over. `NULL` (default) uses the
+  0.1st and 99.9th percentiles of all finite eligible values.
 
 - transform:
 
-  Count transform: `"log1p"` (default) or `"identity"`. Reflectance
-  histograms are heavy-tailed, and on a linear count scale only the mode
-  is visible. Colourbar labels are back-transformed, so the legend still
-  reads true counts.
+  Display transform: `"log1p"` (default) or `"identity"`. Legend labels
+  are returned to raw counts or shares.
 
 - normalise:
 
-  `"none"` (default) or `"band"`. Per-band normalisation stops a band
-  with many masked pixels from reading as empty.
+  `"none"` (default) displays raw counts; `"band"` displays shares of
+  the retained count in each band. Empty bands remain missing.
 
 - palette:
 
@@ -55,31 +60,31 @@ hsa_spectral_density(
 
 - show_limits:
 
-  Draw horizontal rules at the percentile limits the image functions
-  would use. Default `FALSE`.
+  Logical. Draw global raw eligible-value percentiles using `probs`.
+  These references include finite observations outside `limits` and are
+  separate from image enhancement limits. Default `FALSE`.
 
 - probs:
 
-  Percentiles for `stretch = "percentile"`. Default `c(0.02, 0.98)`.
+  Two increasing finite probabilities between zero and one for the
+  global raw eligible-value references when `show_limits = TRUE`. These
+  do not set the histogram range or image enhancement limits.
+
+- value_label:
+
+  A truthful label for the input values. Default `"input value"`. A
+  reflectance label requires known upstream calibration; numeric range
+  alone cannot establish calibration.
 
 ## Value
 
-A ggplot2 object.
+A ggplot2 object with compact original-rendering provenance.
 
 ## Details
 
-This is the only composition here that is not an image, and it is the
-one the others should be read against. Every rendering in this package
-applies a contrast stretch; this figure shows the distribution that
-stretch is being applied to, so a reader can see whether the limits are
-reasonable or whether a striking image is the product of an aggressive
-one. Passing `show_limits = TRUE` draws those limits directly onto the
-distribution.
-
-Values outside `limits` are **dropped, not clipped**. Clipping would
-pile their mass into the end bins and manufacture bright edges at the
-extremes, which is exactly the kind of artefact this figure exists to
-expose.
+Values outside `limits` are dropped rather than clipped into the end
+bins. Masks and nonfinite values are excluded. The overlay describes the
+retained pixel distribution; it is not a confidence interval.
 
 ## Examples
 
