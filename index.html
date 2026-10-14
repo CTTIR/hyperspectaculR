@@ -142,13 +142,26 @@
 <div class="float">
 <img src="reference/figures/gallery-quartiles.png" alt="Three within-pixel spectral quartile panels with a shared enhancement domain and visible legend"><div class="figcaption">Three within-pixel spectral quartile panels with a shared enhancement domain and visible legend</div>
 </div>
-<p><code><a href="reference/hsa_spectral_quartiles.html">hsa_spectral_quartiles()</a></code> gives type-7 25th, 50th and 75th percentiles, weighting <strong>measured bands equally</strong>. The values <code>(0, 1, 4, 9)</code> give <code>(0.75, 2.5, 5.25)</code>; reordering them preserves quartiles but can change flux. One pooled stretch and one legend apply to all three panels. These quantities discard spectral order, depend on sampling density and are not uncertainty intervals. Both new summaries are experimental, descriptive and require complete finite spectra. No physiological interpretation follows from them. See the <a href="planning/evidence/sampling.md">sampling evidence (source Markdown)</a> for independent examples, assumptions and reproducible experiments.</p>
+<p><code><a href="reference/hsa_spectral_quartiles.html">hsa_spectral_quartiles()</a></code> gives type-7 25th, 50th and 75th percentiles, weighting <strong>measured bands equally</strong>. The values <code>(0, 1, 4, 9)</code> give <code>(0.75, 2.5, 5.25)</code>; reordering them preserves quartiles but can change flux. One pooled stretch and one legend apply to all three panels. These quantities discard spectral order, depend on sampling density and are not uncertainty intervals. Both new summaries are experimental, descriptive and require complete finite spectra. No physiological interpretation follows from them. See the <a href="https://github.com/CTTIR/hyperspectaculR/blob/main/planning/evidence/sampling.md" class="external-link">sampling evidence (source Markdown)</a> for independent examples, assumptions and reproducible experiments.</p>
 </div>
 <div class="section level2">
 <h2 id="migrating-to-020">Migrating to 0.2.0<a class="anchor" aria-label="anchor" href="#migrating-to-020"></a>
 </h2>
 <p>Visible results can change: invalid image pixels are transparent; zero flux and constant images use the dark endpoint; default fusion thirds cover every band exactly once; raw display domains stay fixed; density coordinates, retained populations and reference lines are now explicit. Missing wavelengths are labelled as band indices, not nm. Experimental slope/quartile renderers and <code><a href="reference/hsa_provenance.html">hsa_provenance()</a></code> are new exports.</p>
 <p>Malformed masks or wavelengths, fractional/out-of-range indices, duplicate selections within a fusion group, incomplete explicit RGB groups, invalid counts/probabilities, conflicting flux normalization controls, and raw values outside <code>display_limits</code> now raise errors. Entirely invalid renderings fail clearly. Existing argument order and <code>normalise</code> flux behavior are retained; use the appended <code>normalization</code> selector for explicit physical units.</p>
+</div>
+<div class="section level2">
+<h2 id="documentation-support-and-license">Documentation, support and license<a class="anchor" aria-label="anchor" href="#documentation-support-and-license"></a>
+</h2>
+<p>The <a href="https://github.com/CTTIR/hyperspectaculR/blob/main/vignettes/hyperspectaculR.Rmd" class="external-link">package vignette</a> explains the supported compositions and their interpretation. Use <code><a href="https://cttir.github.io/hyperspectaculR/reference">help(package = "hyperspectaculR")</a></code> for function contracts and <code>citation("hyperspectaculR")</code> for citation details. Report reproducible issues at <a href="https://github.com/CTTIR/hyperspectaculR/issues" class="external-link uri">https://github.com/CTTIR/hyperspectaculR/issues</a>.</p>
+<p>MIT licensed; see <a href="https://github.com/CTTIR/hyperspectaculR/blob/main/LICENSE" class="external-link">LICENSE</a>.</p>
+</div>
+<div class="section level2">
+<h2 id="use-of-llm-tools">Use of LLM tools<a class="anchor" aria-label="anchor" href="#use-of-llm-tools"></a>
+</h2>
+<p>Where applicable, LLM tools were used for narrowly defined, non-authorial tasks: copyediting, prose refinement, Markdown/LaTeX formatting, boilerplate scaffolding (such as CI configurations and build scripts), and code refactoring. Tools included <a href="https://kisski.gwdg.de/leistungen/2-02-llm-service/" class="external-link">Chat AI</a>, the KISSKI (GWDG) service, and self-hosted <strong>Mistral Small (24B, Apache-2.0)</strong> served through a local <strong>vLLM architecture</strong> on an Ubuntu Linux workstation with Intel processors and NVIDIA GPUs. The self-hosted model ran locally, with no data sent to third parties.</p>
+<p>All scientific claims, methodological choices, analyses, interpretations and conclusions remain the authors’ own. Where applicable, LLM-generated material must be reviewed and revised before inclusion, and references must be verified against their DOI, arXiv ID or ISBN.</p>
+<p>Local software setup: vLLM with Python/PyTorch, plus R and RStudio.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

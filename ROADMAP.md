@@ -1,8 +1,8 @@
 This roadmap turns the 2026-09-10 audit of commit `1df0bdd` into a delivery plan for trustworthy hyperspectral figures and stronger analytical validation. The immediate objective is to correct the four existing compositions, make their transformations inspectable, and establish evidence that their outputs are scientifically interpretable.
 
-Implementation has produced a **0.2.0 release candidate** on the feature branch. All implementation tasks, including publication assets and validation gates, have passed scoped reviews. The final whole-branch review found three minor disclosure/evidence issues, all addressed in one correction wave. Hosted validation and exact tested checkpoints are recorded in [the candidate evidence](planning/evidence/release-candidate.md); [draft pull request #3](https://github.com/CTTIR/hyperspectaculR/pull/3) is the reviewable handoff. The status tables below track delivery against the original specification. No release has been published.
+Implementation has produced a **0.2.0 release candidate** on the feature branch. All implementation tasks, including publication assets and validation gates, have passed scoped reviews. The final whole-branch review found three minor disclosure/evidence issues, all addressed in one correction wave. Hosted validation and exact tested checkpoints are recorded in [the candidate evidence](https://github.com/CTTIR/hyperspectaculR/blob/main/planning/evidence/release-candidate.md); [draft pull request #3](https://github.com/CTTIR/hyperspectaculR/pull/3) is the reviewable handoff. The status tables below track delivery against the original specification. No release has been published.
 
-Detailed definitions, recommended behaviour, numerical examples, and test fixtures are in [the analysis and validation plan](planning/analysis-and-validation.md). Adopted public arguments are implemented and documented; [decisions](planning/evidence/decisions.md), [audit closure](planning/evidence/audit-resolution.md), [sampling evidence](planning/evidence/sampling.md) and [performance evidence](planning/evidence/performance.md) record the outcome.
+Detailed definitions, recommended behaviour, numerical examples, and test fixtures are in [the analysis and validation plan](https://github.com/CTTIR/hyperspectaculR/blob/main/planning/analysis-and-validation.md). Adopted public arguments are implemented and documented; [decisions](https://github.com/CTTIR/hyperspectaculR/blob/main/planning/evidence/decisions.md), [audit closure](https://github.com/CTTIR/hyperspectaculR/blob/main/planning/evidence/audit-resolution.md), [sampling evidence](https://github.com/CTTIR/hyperspectaculR/blob/main/planning/evidence/sampling.md) and [performance evidence](https://github.com/CTTIR/hyperspectaculR/blob/main/planning/evidence/performance.md) record the outcome.
 
 **Baseline and project direction**
 
@@ -49,7 +49,7 @@ Acceptance: every audit defect has a durable regression specification and a mile
 
 **M1 — Establish a reliable input and validity contract**
 
-Primary files: [R/cube-utils.R](R/cube-utils.R), validation at the public entry points in [R/art.R](R/art.R), and new focused tests under `tests/testthat/`.
+Primary files: [R/cube-utils.R](https://github.com/CTTIR/hyperspectaculR/blob/main/R/cube-utils.R), validation at the public entry points in [R/art.R](https://github.com/CTTIR/hyperspectaculR/blob/main/R/art.R), and new focused tests under `tests/testthat/`.
 
 - Validate numeric three-dimensional data, positive spatial/band dimensions, mask shape and type, and wavelength length/finiteness/order. Reject malformed metadata before any recycling, extraction, or plotting can occur.
 - Preserve a distinction between physical wavelengths and fallback band indices. Wavelength selection requires physical coordinates; ordinary index-based plots remain available for arrays without metadata.
@@ -64,7 +64,7 @@ Compatibility note: stricter errors and a stricter missing-data default can chan
 
 **M2 — Correct image calculations and disclose enhancement**
 
-Primary files: [R/art.R](R/art.R), [R/cube-utils.R](R/cube-utils.R), their roxygen documentation, and calculation/rendering tests.
+Primary files: [R/art.R](https://github.com/CTTIR/hyperspectaculR/blob/main/R/art.R), [R/cube-utils.R](https://github.com/CTTIR/hyperspectaculR/blob/main/R/cube-utils.R), their roxygen documentation, and calculation/rendering tests.
 
 - Resolve default fusion thirds directly as indices. Apply wavelength-to-index conversion only to explicitly supplied wavelength vectors. Preserve rows-by-columns matrices for every channel, including singleton band selections and one-pixel-wide crops.
 - Require at least three bands for automatically generated disjoint fusion groups. Continue allowing explicit overlapping groups when valid, and describe them accurately. Reject empty groups and fractional index values rather than truncating them.
@@ -80,7 +80,7 @@ The source can gain small private helpers for selection, aggregation, and enhanc
 
 **M3 — Make the density plot and analytical evidence trustworthy**
 
-Primary files: density calculation and rendering in [R/art.R](R/art.R), private diagnostic helpers as needed, and [vignettes/hyperspectaculR.Rmd](vignettes/hyperspectaculR.Rmd).
+Primary files: density calculation and rendering in [R/art.R](https://github.com/CTTIR/hyperspectaculR/blob/main/R/art.R), private diagnostic helpers as needed, and [vignettes/hyperspectaculR.Rmd](https://github.com/CTTIR/hyperspectaculR/blob/main/vignettes/hyperspectaculR.Rmd).
 
 - Preserve an integer count matrix before normalisation or display transforms. Record counts of masked, nonfinite, below-range, retained, and above-range observations, with per-band denominators.
 - Define per-band shares as fractions of retained observations, and disclose that conditioning. An empty band has an undefined share, not evidence of a measured zero distribution.

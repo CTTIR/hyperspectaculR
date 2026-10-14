@@ -195,7 +195,7 @@ discard spectral order, depend on sampling density and are not
 uncertainty intervals. Both new summaries are experimental, descriptive
 and require complete finite spectra. No physiological interpretation
 follows from them. See the [sampling evidence (source
-Markdown)](https://cttir.github.io/hyperspectaculR/planning/evidence/sampling.md)
+Markdown)](https://github.com/CTTIR/hyperspectaculR/blob/main/planning/evidence/sampling.md)
 for independent examples, assumptions and reproducible experiments.
 
 ## Migrating to 0.2.0
@@ -216,3 +216,35 @@ controls, and raw values outside `display_limits` now raise errors.
 Entirely invalid renderings fail clearly. Existing argument order and
 `normalise` flux behavior are retained; use the appended `normalization`
 selector for explicit physical units.
+
+## Documentation, support and license
+
+The [package
+vignette](https://github.com/CTTIR/hyperspectaculR/blob/main/vignettes/hyperspectaculR.Rmd)
+explains the supported compositions and their interpretation. Use
+[`help(package = "hyperspectaculR")`](https://cttir.github.io/hyperspectaculR/reference)
+for function contracts and `citation("hyperspectaculR")` for citation
+details. Report reproducible issues at
+<https://github.com/CTTIR/hyperspectaculR/issues>.
+
+MIT licensed; see
+[LICENSE](https://github.com/CTTIR/hyperspectaculR/blob/main/LICENSE).
+
+## Use of LLM tools
+
+Where applicable, LLM tools were used for narrowly defined,
+non-authorial tasks: copyediting, prose refinement, Markdown/LaTeX
+formatting, boilerplate scaffolding (such as CI configurations and build
+scripts), and code refactoring. Tools included [Chat
+AI](https://kisski.gwdg.de/leistungen/2-02-llm-service/), the KISSKI
+(GWDG) service, and self-hosted **Mistral Small (24B, Apache-2.0)**
+served through a local **vLLM architecture** on an Ubuntu Linux
+workstation with Intel processors and NVIDIA GPUs. The self-hosted model
+ran locally, with no data sent to third parties.
+
+All scientific claims, methodological choices, analyses, interpretations
+and conclusions remain the authors’ own. Where applicable, LLM-generated
+material must be reviewed and revised before inclusion, and references
+must be verified against their DOI, arXiv ID or ISBN.
+
+Local software setup: vLLM with Python/PyTorch, plus R and RStudio.
