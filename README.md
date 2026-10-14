@@ -173,3 +173,12 @@ counts/probabilities, conflicting flux normalization controls, and raw values
 outside `display_limits` now raise errors. Entirely invalid renderings fail
 clearly. Existing argument order and `normalise` flux behavior are retained;
 use the appended `normalization` selector for explicit physical units.
+
+## Documentation, support and license
+
+The [package vignette](vignettes/hyperspectaculR.Rmd) explains the supported
+compositions and their interpretation. Use `help(package = "hyperspectaculR")`
+for function contracts and `citation("hyperspectaculR")` for citation details.
+Report reproducible issues at <https://github.com/CTTIR/hyperspectaculR/issues>.
+
+MIT licensed; see [LICENSE](LICENSE).
