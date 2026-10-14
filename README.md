@@ -155,7 +155,7 @@ One pooled stretch and one legend apply to all three panels. These quantities
 discard spectral order, depend on sampling density and are not uncertainty
 intervals. Both new summaries are experimental, descriptive and require
 complete finite spectra. No physiological interpretation follows from them.
-See the [sampling evidence (source Markdown)](planning/evidence/sampling.md) for independent
+See the [sampling evidence (source Markdown)](https://github.com/CTTIR/hyperspectaculR/blob/main/planning/evidence/sampling.md) for independent
 examples, assumptions and reproducible experiments.
 
 ## Migrating to 0.2.0
@@ -176,12 +176,12 @@ use the appended `normalization` selector for explicit physical units.
 
 ## Documentation, support and license
 
-The [package vignette](vignettes/hyperspectaculR.Rmd) explains the supported
+The [package vignette](https://github.com/CTTIR/hyperspectaculR/blob/main/vignettes/hyperspectaculR.Rmd) explains the supported
 compositions and their interpretation. Use `help(package = "hyperspectaculR")`
 for function contracts and `citation("hyperspectaculR")` for citation details.
 Report reproducible issues at <https://github.com/CTTIR/hyperspectaculR/issues>.
 
-MIT licensed; see [LICENSE](LICENSE).
+MIT licensed; see [LICENSE](https://github.com/CTTIR/hyperspectaculR/blob/main/LICENSE).
 
 ## Use of LLM tools
 
