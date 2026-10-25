@@ -26,3 +26,9 @@ showcase/laboratory/
 /docs/
 /pkgdown/favicon/
 Rplots.pdf
+
+# Versioned branding sources for pkgdown.
+!/pkgdown/
+/pkgdown/*
+!/pkgdown/favicon/
+!/pkgdown/favicon/**
