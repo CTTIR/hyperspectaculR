@@ -1,4 +1,4 @@
-# hyperspectaculR <img src="man/figures/logo.svg" align="right" height="180" alt="hyperspectaculR logo" />
+# hyperspectaculR <img src="man/figures/logo.png" align="right" width="120" height="139" alt="hyperspectaculR logo" />
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21889974.svg)](https://doi.org/10.5281/zenodo.21889974)
 [![R-CMD-check](https://github.com/CTTIR/hyperspectaculR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/CTTIR/hyperspectaculR/actions/workflows/R-CMD-check.yaml)
@@ -200,3 +200,8 @@ must be reviewed and revised before inclusion, and references must be verified
 against their DOI, arXiv ID or ISBN.
 
 Local software setup: vLLM with Python/PyTorch, plus R and RStudio.
+
+## Branding
+
+Editable R sources and regeneration instructions are in
+[tools/branding](https://github.com/CTTIR/hyperspectaculR/tree/main/tools/branding).
