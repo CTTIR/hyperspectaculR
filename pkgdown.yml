@@ -3,7 +3,7 @@ pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   hyperspectaculR: hyperspectaculR.html
-last_built: 2026-10-26T16:50Z
+last_built: 2026-10-28T07:52Z
 urls:
   reference: https://cttir.github.io/hyperspectaculR/reference
   article: https://cttir.github.io/hyperspectaculR/articles

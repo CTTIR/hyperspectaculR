@@ -1,5 +1,8 @@
 # Compositions with inspectable spectral quantities
 
+![hyperspectaculR logo](figures/logo.svg)![hyperspectaculR
+logo](figures/logo-dark.svg)
+
 The 0.2.0 candidate creates compositions and descriptive summaries from
 an `hsi_cube` or real numeric `(rows, cols, bands)` array. Reading
 recordings and calibration happen upstream. The default label is **input
