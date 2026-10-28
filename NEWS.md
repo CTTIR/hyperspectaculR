@@ -1,5 +1,9 @@
 # hyperspectaculR 0.2.0 (development candidate)
 
+* Standardize the named v5 package logo across README, documentation pages
+  and available application headers, with matching light and dark artwork.
+
+
 * Validate real numeric cubes, optional spatial masks and strictly increasing
   physical wavelengths; keep absent wavelengths as band indices.
 * Preserve invalid image pixels as transparent. Correct default fusion thirds
