@@ -1,0 +1,6 @@
+/* Scientific figure colours encode the rendered values and must remain
+   unchanged when the surrounding documentation changes its colour mode. */
+html[data-bs-theme] img.r-plt,
+html[data-bs-theme] .template-home img[src*="gallery-"] {
+  filter: none;
+}

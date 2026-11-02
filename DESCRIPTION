@@ -1,6 +1,6 @@
 Package: hyperspectaculR
 Title: Publication-Grade Artistic Visualization of Hyperspectral Imagery
-Version: 0.2.0
+Version: 0.2.0.9001
 Authors@R: person("R.", "Heller", email = "raban.heller@charite.de",
     role = c("aut", "cre", "cph"), comment = c(ORCID = "0000-0001-8006-9742"))
 Description: Creates artistic compositions and descriptive summaries from
@@ -26,7 +26,7 @@ Imports:
     rlang,
     scales,
     stats,
-    viridisLite
+    viridisLite (>= 0.4.0)
 Suggests:
     hyperspectR,
     tivis.r,

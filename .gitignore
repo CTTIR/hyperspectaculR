@@ -30,5 +30,6 @@ Rplots.pdf
 # Versioned branding sources for pkgdown.
 !/pkgdown/
 /pkgdown/*
+!/pkgdown/extra.css
 !/pkgdown/favicon/
 !/pkgdown/favicon/**

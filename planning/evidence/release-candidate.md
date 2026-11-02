@@ -1,3 +1,8 @@
+> Historical pre-merge evidence. Pull request #3 was merged on 3 October 2026.
+> The statements below describe the original review checkpoint, not current
+> branch or publication status. See [the 2 November maintenance record](maintenance-2026-11-02.md)
+> for the latest local audit; no new release or deployment is implied.
+
 The prepared package is **hyperspectaculR 0.2.0**, available for review in [draft pull request #3](https://github.com/CTTIR/hyperspectaculR/pull/3). The final package-source correction is `9128b71`: it clarifies the density caption, regenerates only the affected density figures, makes contributor-summary documentation precise and refreshes three baseline benchmark records. No numerical calculation changed in that correction. A fresh full package check on the same packaged source at `e5f930a` passes with 0 errors, 0 warnings and 0 notes. Later handoff edits update evidence and remove process scratch. The release is not tagged, merged or published; public-site deployment and live-URL checks follow an authorized release/deployment action.
 
 | Gate | Result and evidence |

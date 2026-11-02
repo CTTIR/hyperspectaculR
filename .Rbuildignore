@@ -22,3 +22,4 @@
 ^planning$
 ^\.git$
 ^tools/branding$
+(^|/)Rplots\.pdf$

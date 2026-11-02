@@ -1,3 +1,19 @@
+# hyperspectaculR 0.2.0.9001 (development candidate)
+
+* Match cube fields by exact name, require vector wavelength metadata and
+  compare dimension sizes independently of their names. This prevents unrelated
+  metadata from excluding pixels or bypassing coordinate-order validation.
+* Correct arithmetic at subnormal scales while retaining ordinary-range
+  definitions and rendering behavior.
+* Document dependency installation and a readable two-panel composition;
+  preserve full original provenance on each component.
+* Update merged-candidate status and retain the unconfirmed prior DOI in the
+  maintenance record instead of advertising it as an available citation.
+* Require viridisLite >= 0.4.0, the first version supplying all documented
+  palettes. Older versions warned and substituted viridis while provenance
+  still named the requested palette.
+* Exclude local default graphics-device output from source packages.
+
 # hyperspectaculR 0.2.0 (development candidate)
 
 * Standardize the named v5 package logo across README, documentation pages
