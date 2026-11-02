@@ -12,12 +12,14 @@
   midpoint <- left / 2 + right / 2
   ordinary <- is.finite(width)
   midpoint[ordinary] <- left[ordinary] + width[ordinary] / 2
+  tiny <- pmax(abs(left), abs(right)) <= .Machine$double.xmin
+  midpoint[tiny] <- .stable_interpolate(left[tiny], right[tiny], 0.5)
   midpoint
 }
 
 .density_breaks <- function(limits, nbins) {
   weight <- seq.int(0L, nbins) / nbins
-  breaks <- (1 - weight) * limits[1L] + weight * limits[2L]
+  breaks <- .stable_interpolate(limits[1L], limits[2L], weight)
   breaks[c(1L, length(breaks))] <- limits
   if (any(!is.finite(breaks)) || any(diff(breaks) <= 0)) {
     cli::cli_abort(paste(
@@ -65,7 +67,7 @@
 }
 
 .density_interpolate <- function(limits, weight) {
-  (1 - weight) * limits[1L] + weight * limits[2L]
+  .stable_interpolate(limits[1L], limits[2L], weight)
 }
 
 .density_overlay <- function(H, centres, limits, coordinates) {
@@ -306,9 +308,7 @@ hsa_spectral_density <- function(cube, nbins = 128L, limits = NULL,
       if (!explicit_limits) range_probs,
       if (show_limits) probs
     )))
-    quantiles <- unname(stats::quantile(
-      finite_population, probs = requested_probs, type = 7L, names = FALSE
-    ))
+    quantiles <- .quantile_type7(finite_population, requested_probs)
     take_quantile <- function(probability) {
       quantiles[match(probability, requested_probs)]
     }

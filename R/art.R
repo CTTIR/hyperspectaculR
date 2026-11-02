@@ -63,11 +63,12 @@
 #'
 #' @param cube An `hsi_cube` (from \pkg{hyperspectR}) or a 3-D array with
 #'   dimensions `(rows, cols, bands)`, of integer or double values. Optional
-#'   `wavelengths` metadata must be finite, unique and strictly increasing in
-#'   nm. Without it, coordinates are band indices. An optional logical spatial
+#'   `wavelengths` metadata must be a numeric vector, finite, unique and strictly
+#'   increasing in nm. Without it, coordinates are band indices. An optional logical spatial
 #'   `mask` has dimensions `(rows, cols)` and no missing entries; `FALSE`
 #'   excludes a pixel. Arrays may carry these as attributes; an `hsi_cube` may
-#'   carry them as list fields. Nonfinite observations are excluded.
+#'   carry them as exactly named list fields. Dimension names do not alter
+#'   spatial sizes. Nonfinite observations are excluded.
 #' @param sampling Ring targets: `"index"` (default) or `"wavelength"`.
 #'   Wavelength sampling requires physical metadata in nm.
 #' @param centre Numeric length-2 vector `c(x, y)` in pixels. `NULL` (default)

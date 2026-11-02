@@ -59,7 +59,8 @@
   acc
 }
 
-.spectral_change <- function(cube, denominator, rms = FALSE) {
+.spectral_change <- function(cube, denominator, rms = FALSE,
+                             denominator_exponent = 0) {
   d <- dim(cube$data)
   valid <- matrix(TRUE, d[1L], d[2L])
   for (b in seq_len(d[3L])) valid <- valid & is.finite(.cube_band(cube, b))
@@ -78,6 +79,12 @@
     next_value <- .cube_band(cube, b + 1L)[valid]
     divisor <- if (length(denominator) == 1L) denominator else denominator[b]
     contribution <- .scaled_spectral_difference(next_value, previous, divisor)
+    power <- if (length(denominator_exponent) == 1L) {
+      denominator_exponent
+    } else {
+      denominator_exponent[b]
+    }
+    contribution$exponent <- contribution$exponent - power
     # Zero terms must not set the common exponent: that could erase an entire
     # subnormal aggregate before any nonzero term has been accumulated.
     exponent[acc == 0] <- contribution$exponent[acc == 0]
@@ -135,7 +142,22 @@ hsa_spectral_gradient <- function(cube, palette = "inferno",
   interpolate <- .validate_flag(interpolate, "interpolate")
   geometry <- .spectral_intervals(cb)
   denominator <- sqrt(geometry$intervals) * sqrt(geometry$span)
-  raw <- .spectral_change(cb, denominator, rms = TRUE)
+  denominator_exponent <- numeric(length(denominator))
+  tiny <- denominator < .Machine$double.xmin
+  if (any(tiny)) {
+    # Form sqrt(h * L) as a mantissa and exponent: materializing a subnormal
+    # divisor here would round it before the slope and its RMS are computed.
+    interval_parts <- .spectral_binary_parts(geometry$intervals[tiny])
+    span_parts <- .spectral_binary_parts(geometry$span)
+    product_exponent <- interval_parts$exponent + span_parts$exponent
+    denominator_exponent[tiny] <- floor(product_exponent / 2)
+    remainder <- product_exponent - 2 * denominator_exponent[tiny]
+    denominator[tiny] <- sqrt(
+      interval_parts$mantissa * span_parts$mantissa * 2^remainder
+    )
+  }
+  raw <- .spectral_change(cb, denominator, rms = TRUE,
+                          denominator_exponent = denominator_exponent)
   st <- .stretch(raw, stretch, probs, display_limits)
   df <- .as_long(st$values)
   df$raw_value <- as.vector(raw)
@@ -230,7 +252,7 @@ hsa_spectral_quartiles <- function(cube, palette = "magma",
   valid <- rowSums(is.finite(values)) == d[3L]
   raw <- matrix(NA_real_, nrow(values), 3L)
   for (i in which(valid)) {
-    raw[i, ] <- stats::quantile(values[i, ], probabilities, type = 7L, names = FALSE)
+    raw[i, ] <- .quantile_type7(values[i, ], probabilities)
   }
   st <- .stretch(raw, stretch, probs, display_limits)
   df <- .as_long(matrix(st$values[, 1L], d[1L], d[2L]))

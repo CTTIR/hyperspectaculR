@@ -63,14 +63,14 @@ NULL
       cli::cli_abort("{.arg {arg}} is an {.cls hsi_cube} but is not a list.",
                      call = call)
     }
-    if (is.null(x$data)) {
+    data <- x[["data", exact = TRUE]]
+    if (is.null(data)) {
       cli::cli_abort("{.arg {arg}} is an {.cls hsi_cube} but lacks {.field data}.",
                      call = call)
     }
-    data <- x$data
-    wavelengths <- x$wavelengths
+    wavelengths <- x[["wavelengths", exact = TRUE]]
     if (is.null(wavelengths)) wavelengths <- attr(data, "wavelengths", exact = TRUE)
-    mask <- x$mask
+    mask <- x[["mask", exact = TRUE]]
     if (is.null(mask)) mask <- attr(data, "mask", exact = TRUE)
   } else if (is.array(x)) {
     data <- x
@@ -83,7 +83,7 @@ NULL
     ), call = call)
   }
 
-  d <- dim(data)
+  d <- unname(dim(data))
   if (!is.array(data) || length(d) != 3L) {
     cli::cli_abort("{.arg {arg}} must be an {.cls hsi_cube} or a numeric 3-D array.",
                    call = call)
@@ -98,7 +98,8 @@ NULL
 
   has_wavelengths <- !is.null(wavelengths)
   if (has_wavelengths) {
-    if (!is.numeric(wavelengths) || length(wavelengths) != d[3L] ||
+    if (!is.numeric(wavelengths) || !is.null(dim(wavelengths)) ||
+        length(wavelengths) != d[3L] ||
         any(!is.finite(wavelengths)) || anyDuplicated(wavelengths) ||
         any(diff(wavelengths) <= 0)) {
       cli::cli_abort(
@@ -115,7 +116,7 @@ NULL
 
   if (!is.null(mask)) {
     if (!is.logical(mask) || !is.matrix(mask) ||
-        !identical(dim(mask), d[1:2]) || anyNA(mask)) {
+        !identical(unname(dim(mask)), d[1:2]) || anyNA(mask)) {
       cli::cli_abort(
         "The spatial {.field mask} for {.arg {arg}} must be a logical matrix matching rows and columns, without missing values.",
         call = call
@@ -148,7 +149,7 @@ NULL
 }
 
 .cube_info <- function(cube) {
-  d <- dim(cube$data)
+  d <- unname(dim(cube$data))
   list(
     dimensions = c(rows = d[1L], columns = d[2L], bands = d[3L]),
     coordinate_kind = cube$coordinate_kind,
@@ -201,6 +202,43 @@ NULL
   to[1L] + scaled * (to[2L] - to[1L])
 }
 
+# Scale tiny interpolation brackets by an exact power of two so their two
+# weighted terms are not rounded to subnormal precision before being added.
+.stable_interpolate <- function(left, right, weight) {
+  result <- (1 - weight) * left + weight * right
+  left <- rep_len(left, length(result))
+  right <- rep_len(right, length(result))
+  magnitude <- pmax(abs(left), abs(right))
+  tiny <- magnitude > 0 & magnitude <= .Machine$double.xmin
+  if (any(tiny)) {
+    weight <- rep_len(weight, length(result))
+    result[tiny] <- ((1 - weight[tiny]) * (left[tiny] / .Machine$double.xmin) +
+      weight[tiny] * (right[tiny] / .Machine$double.xmin)) * .Machine$double.xmin
+  }
+  result
+}
+
+# Callers supply finite observations and validated probabilities. Keep the
+# standard type-7 path unless a requested bracket needs tiny-value arithmetic;
+# do not rescale a mixed tiny/ordinary population as a whole.
+.quantile_type7 <- function(x, probs) {
+  result <- stats::quantile(x, probs = probs, type = 7L, names = FALSE)
+  possible <- which(abs(result) <= .Machine$double.xmin)
+  if (!length(possible)) return(result)
+  index <- 1 + (length(x) - 1) * probs[possible]
+  lower <- floor(index)
+  upper <- ceiling(index)
+  ordered <- sort(x, partial = unique(c(lower, upper)))
+  left <- ordered[lower]
+  right <- ordered[upper]
+  tiny <- pmax(abs(left), abs(right)) <= .Machine$double.xmin
+  if (any(tiny)) {
+    result[possible[tiny]] <- .stable_interpolate(left[tiny], right[tiny],
+                                                 index[tiny] - lower[tiny])
+  }
+  result
+}
+
 # Rescale finite observations to [0, 1] using a stated contrast stretch.
 .stretch <- function(x, method = c("percentile", "range", "none"),
                      probs = c(0.02, 0.98), display_limits = c(0, 1)) {
@@ -231,7 +269,7 @@ NULL
     output_domain <- display_limits
   } else {
     limits <- if (identical(method, "percentile")) {
-      unname(stats::quantile(finite, probs = probs, na.rm = TRUE, type = 7L))
+      .quantile_type7(finite, probs)
     } else {
       range(finite)
     }

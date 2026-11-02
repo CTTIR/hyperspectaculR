@@ -21,11 +21,12 @@ hsa_fusion(
 \arguments{
 \item{cube}{An \code{hsi_cube} (from \pkg{hyperspectR}) or a 3-D array with
 dimensions \verb{(rows, cols, bands)}, of integer or double values. Optional
-\code{wavelengths} metadata must be finite, unique and strictly increasing in
-nm. Without it, coordinates are band indices. An optional logical spatial
+\code{wavelengths} metadata must be a numeric vector, finite, unique and strictly
+increasing in nm. Without it, coordinates are band indices. An optional logical spatial
 \code{mask} has dimensions \verb{(rows, cols)} and no missing entries; \code{FALSE}
 excludes a pixel. Arrays may carry these as attributes; an \code{hsi_cube} may
-carry them as list fields. Nonfinite observations are excluded.}
+carry them as exactly named list fields. Dimension names do not alter
+spatial sizes. Nonfinite observations are excluded.}
 
 \item{red, green, blue}{Integer vectors of band indices, or numeric
 wavelengths in nm when \code{by = "wavelength"}. \code{NULL} (default) splits the
