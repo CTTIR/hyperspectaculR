@@ -1,0 +1,7 @@
+"example","total_variation","mean_step","mean_absolute_slope","rms_slope","lower_quartile","median","upper_quartile"
+"linear_coarse",1,0.5,0.0025,0.0025,0.25,0.5,0.75
+"linear_fine",1,0.2,0.0025,0.0025,0.25,0.5,0.75
+"concentrated_slope",2,1,0.4,0.894427190999916,1,2,2
+"subdivided_interval",2,0.666666666666667,0.4,0.894427190999916,1.5,2,2
+"quartile_reference",9,3,0.03,0.0341565025531987,0.75,2.5,5.25
+"quartile_permutation",16,5.33333333333333,0.0533333333333333,0.0594418483337567,0.75,2.5,5.25
