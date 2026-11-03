@@ -179,3 +179,25 @@ sibling local maintenance evidence directory, including `verification.json`,
 `SITE-REVIEW.md`, `MANUAL-REVIEW.md`, the independent numerical reviews and the
 clean first-use/gallery records. Original and excluded working sessions remain
 untouched. No commit publication, release, submission or deployment occurred.
+
+## Hosted-site follow-up, 2026-11-03
+
+After publication of commit `690e4c3`, the hosted pkgdown run `41604995010`
+failed on the ROADMAP link to this record. The development site was built in
+`docs/dev`, while the subsequent evidence-copy and validation scripts defaulted
+to `docs`. Earlier local verification supplied `docs/dev` explicitly, so it did
+not exercise the hosted invocation.
+
+Both scripts now resolve the default destination through pkgdown's project
+configuration. Explicit command-line destinations retain their existing behavior.
+A disposable-project regression exercises development, release and explicit
+destinations through the workflow's `source()` calls; each also checks that a
+genuinely missing link is rejected. The workflow runs this regression before
+building the site.
+
+The former failure was reproduced locally. The corrected complete hosted build
+sequence passed, copying 60 public evidence/source files, correcting the one
+evidence link and checking 507 built page links. House lint and workflow syntax
+validation passed. These are local results; the subsequent exact-commit hosted
+run must be observed separately. This fix changes site publication scripts and
+their regression coverage, without changing rendering or numerical package APIs.

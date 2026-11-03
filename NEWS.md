@@ -1,5 +1,8 @@
 # hyperspectaculR 0.2.0.9001 (development candidate)
 
+* Copy and validate publication evidence in pkgdown's actual output directory,
+  including development sites under `docs/dev`. Exercise the hosted build's
+  default invocation and explicit output overrides before publishing the site.
 * Match cube fields by exact name, require vector wavelength metadata and
   compare dimension sizes independently of their names. This prevents unrelated
   metadata from excluding pixels or bypassing coordinate-order validation.

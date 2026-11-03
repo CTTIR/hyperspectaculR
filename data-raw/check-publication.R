@@ -1,7 +1,7 @@
 # Check repository metadata and local images after building pkgdown.
 # Run: Rscript data-raw/check-publication.R [site-directory]
 arguments <- commandArgs(trailingOnly = TRUE)
-site <- if (length(arguments)) arguments[1L] else "docs"
+site <- if (length(arguments)) arguments[1L] else pkgdown::as_pkgdown(".")$dst_path
 version <- unname(read.dcf("DESCRIPTION")[1L, "Version"])
 citation <- yaml::read_yaml("CITATION.cff")
 zenodo <- jsonlite::fromJSON(".zenodo.json")

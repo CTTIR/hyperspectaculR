@@ -37,6 +37,7 @@ jobs:
 
       - name: Build site
         run: |
+          source("data-raw/test-site-evidence.R")
           pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
           source("data-raw/prepare-site-evidence.R")
           source("data-raw/check-publication.R")

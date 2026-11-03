@@ -1,7 +1,7 @@
 # Publish only explicit public evidence and the source files its links reference.
 # Run after pkgdown::build_site(): Rscript data-raw/prepare-site-evidence.R [site]
 arguments <- commandArgs(trailingOnly = TRUE)
-site <- if (length(arguments)) arguments[1L] else "docs"
+site <- if (length(arguments)) arguments[1L] else pkgdown::as_pkgdown(".")$dst_path
 if (!dir.exists(site)) cli::cli_abort("Build the site before copying evidence.")
 public_directories <- c("planning", "R", "tests", "data-raw", "vignettes")
 public_files <- unlist(lapply(public_directories, function(directory) {
