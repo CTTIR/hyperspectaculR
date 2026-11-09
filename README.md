@@ -4,7 +4,7 @@
 [![pkgdown](https://github.com/CTTIR/hyperspectaculR/actions/workflows/pkgdown.yaml/badge.svg)](https://cttir.github.io/hyperspectaculR/)
 
 Artistic compositions and descriptive summaries of hyperspectral imagery.
-The **0.2.0.9001 development candidate** consumes an `hsi_cube` or numeric `(rows, cols, bands)`
+Version **0.3.0** consumes an `hsi_cube` or numeric `(rows, cols, bands)`
 array and returns composable ggplots. It does not read recordings, calibrate
 values or infer physiology. Readers such as
 [hyperspectR](https://github.com/CTTIR/hyperspectR) provide upstream integration.

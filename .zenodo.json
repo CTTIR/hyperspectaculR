@@ -1,7 +1,7 @@
 {
   "upload_type": "software",
   "title": "hyperspectaculR: Artistic visualisation of hyperspectral imaging data",
-  "version": "0.2.0.9001",
+  "version": "0.3.0",
   "description": "<p>Artistic compositions and descriptive summaries from hyperspectral imaging cubes and numeric arrays: radial spectral mandalas, cumulative spectral change, multi-band RGB fusion, exact spectral density, and experimental RMS spectral slope and within-pixel spectral quartiles. Returns composable ggplot objects with explicit validity, display domains and original-rendering provenance. Recording readers, calibration, three-dimensional sculptures and animations are outside this package.</p>",
   "creators": [
     {
@@ -29,5 +29,5 @@
       "resource_type": "software"
     }
   ],
-  "notes": "Prepared 0.2.0.9001 development candidate. Not yet published."
+  "notes": "Prepared 0.3.0 release candidate. Not yet published."
 }

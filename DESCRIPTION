@@ -1,15 +1,17 @@
 Package: hyperspectaculR
 Title: Publication-Grade Artistic Visualization of Hyperspectral Imagery
-Version: 0.2.0.9001
-Authors@R: person("R.", "Heller", email = "raban.heller@charite.de",
+Version: 0.3.0
+Authors@R: person("R.", "Heller", email = "raban.heller@uni-ulm.de",
     role = c("aut", "cre", "cph"), comment = c(ORCID = "0000-0001-8006-9742"))
 Description: Creates artistic compositions and descriptive summaries from
     hyperspectral imaging cubes or numeric arrays. Provides radial spectral
     mandalas, cumulative spectral change, multi-band fusions, exact spectral
-    density histograms, and experimental RMS spectral slope and within-pixel
-    spectral quartiles. Returns composable 'ggplot' objects with explicit
-    validity rules, display domains and compact original-rendering provenance.
-    Does not read recordings, calibrate input values or infer physiology.
+    density histograms, and experimental root mean square (RMS) spectral
+    slope and within-pixel spectral quartiles. Returns composable 'ggplot2'
+    plot objects with explicit validity rules, display domains and compact
+    original-rendering provenance.
+    The package does not read recordings, calibrate input values or infer
+    physiology.
 License: MIT + file LICENSE
 URL: https://github.com/CTTIR/hyperspectaculR,
     https://cttir.github.io/hyperspectaculR/
@@ -41,4 +43,4 @@ Additional_repositories: https://cttir.r-universe.dev
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Config/Needs/website: CTTIR/themakR
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.1

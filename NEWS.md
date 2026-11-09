@@ -1,4 +1,16 @@
-# hyperspectaculR 0.2.0.9001 (development candidate)
+# hyperspectaculR 0.3.0
+
+## CRAN preparation
+
+* Added an example to `hsa_provenance()`; every exported function now has a
+  runnable example.
+* Reworded the Description (complete sentences, expanded RMS, 'ggplot2'),
+  added an `inst/WORDLIST` and `cran-comments.md`.
+* Updated the maintainer e-mail address to raban.heller@uni-ulm.de.
+* Includes all changes of the 0.2.0 and 0.2.0.9001 development candidates
+  listed below.
+
+# hyperspectaculR 0.2.0.9001 (development candidate, not released)
 
 * Copy and validate publication evidence in pkgdown's actual output directory,
   including development sites under `docs/dev`. Exercise the hosted build's
