@@ -23,3 +23,9 @@ endpoints, fallback reasons, exclusions and quantity definitions remain
 inspectable even when plot labels abbreviate them. Source cubes and arbitrary
 input metadata are not retained in the record.
 }
+\examples{
+p <- hsa_fusion(hsa_demo_cube())
+record <- hsa_provenance(p)
+names(record)
+record$selection
+}

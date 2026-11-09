@@ -8,7 +8,7 @@
 \description{
 \if{html}{\figure{logo.svg}{options: style='float: right' alt='logo' width='120'}}
 
-Creates artistic compositions and descriptive summaries from hyperspectral imaging cubes or numeric arrays. Provides radial spectral mandalas, cumulative spectral change, multi-band fusions, exact spectral density histograms, and experimental RMS spectral slope and within-pixel spectral quartiles. Returns composable 'ggplot' objects with explicit validity rules, display domains and compact original-rendering provenance. Does not read recordings, calibrate input values or infer physiology.
+Creates artistic compositions and descriptive summaries from hyperspectral imaging cubes or numeric arrays. Provides radial spectral mandalas, cumulative spectral change, multi-band fusions, exact spectral density histograms, and experimental root mean square (RMS) spectral slope and within-pixel spectral quartiles. Returns composable 'ggplot2' plot objects with explicit validity rules, display domains and compact original-rendering provenance. The package does not read recordings, calibrate input values or infer physiology.
 }
 \seealso{
 Useful links:
@@ -20,11 +20,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: R. Heller \email{raban.heller@charite.de} (\href{https://orcid.org/0000-0001-8006-9742}{ORCID}) [copyright holder]
+\strong{Maintainer}: R. Heller \email{raban.heller@uni-ulm.de} (\href{https://orcid.org/0000-0001-8006-9742}{ORCID}) [copyright holder]
 
 Authors:
 \itemize{
-  \item R. Heller \email{raban.heller@charite.de} (\href{https://orcid.org/0000-0001-8006-9742}{ORCID}) [copyright holder]
+  \item R. Heller \email{raban.heller@uni-ulm.de} (\href{https://orcid.org/0000-0001-8006-9742}{ORCID}) [copyright holder]
 }
 
 }
