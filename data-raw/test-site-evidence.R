@@ -14,15 +14,18 @@
     for (path in c("DESCRIPTION", "CITATION.cff", ".zenodo.json")) {
       file.copy(file.path(source_root, path), file.path(fixture, path))
     }
-    if (mode == "release") {
+    # Pin each fixture to a version of the matching kind, independent of the
+    # version currently in the source DESCRIPTION.
+    fixture_version <- switch(mode, development = "0.2.0.9000", release = "0.2.0")
+    if (!is.null(fixture_version)) {
       description <- readLines(file.path(fixture, "DESCRIPTION"))
-      writeLines(sub("^Version:.*", "Version: 0.2.0", description),
+      writeLines(sub("^Version:.*", paste("Version:", fixture_version), description),
                  file.path(fixture, "DESCRIPTION"))
       citation <- yaml::read_yaml(file.path(fixture, "CITATION.cff"))
-      citation$version <- "0.2.0"
+      citation$version <- fixture_version
       yaml::write_yaml(citation, file.path(fixture, "CITATION.cff"))
       zenodo <- jsonlite::fromJSON(file.path(fixture, ".zenodo.json"))
-      zenodo$version <- "0.2.0"
+      zenodo$version <- fixture_version
       jsonlite::write_json(zenodo, file.path(fixture, ".zenodo.json"), auto_unbox = TRUE)
     }
     writeLines(c("development:", "  mode: auto"), file.path(fixture, "_pkgdown.yml"))
