@@ -3,11 +3,12 @@
 ![hyperspectaculR logo](figures/logo.svg)![hyperspectaculR
 logo](figures/logo-dark.svg)
 
-The 0.2.0 candidate creates compositions and descriptive summaries from
-an `hsi_cube` or real numeric `(rows, cols, bands)` array. Reading
-recordings and calibration happen upstream. The default label is **input
-value**: a range such as 0–1 does not establish calibrated reflectance.
-These plots do not support physiological inference.
+The 0.2.0.9001 development candidate creates compositions and
+descriptive summaries from an `hsi_cube` or real numeric
+`(rows, cols, bands)` array. Reading recordings and calibration happen
+upstream. The default label is **input value**: a range such as 0–1 does
+not establish calibrated reflectance. These plots do not support
+physiological inference.
 
 ## Inputs and missing observations
 
@@ -22,17 +23,21 @@ cube$data[11, 10, 3] <- NA_real_
 
 A mask must be a logical spatial matrix without missing entries. `FALSE`
 excludes a pixel; nonfinite observations are excluded separately.
-Metadata must contain one strictly increasing finite wavelength in nm
-per band. Arrays can carry `mask` and `wavelengths` attributes. Without
-wavelengths the coordinates are **band indices**; physical selection and
-slopes require nm.
+Wavelength metadata must be a numeric vector containing one strictly
+increasing finite wavelength in nm per band. An `hsi_cube` uses the
+exact field names `data`, `wavelengths` and `mask`; abbreviated names
+are not accepted. Arrays can carry `mask` and `wavelengths` attributes.
+Without wavelengths the coordinates are **band indices**; physical
+selection and slopes require nm.
 
 ``` r
 
 hsa_spectral_density(cube$data, nbins = 32)
 ```
 
-![](hyperspectaculR_files/figure-html/index-density-1.png)
+![Histogram of finite synthetic pixel values across 12 band indices,
+with binned means and pixel
+envelopes.](hyperspectaculR_files/figure-html/index-density-1.png)
 
 ## Selection and display domains
 
@@ -42,7 +47,9 @@ p <- hsa_mandala(cube, n_rings = 8, sampling = "wavelength")
 p
 ```
 
-![](hyperspectaculR_files/figure-html/mandala-1.png)
+![Eight-ring synthetic mandala with wavelength-based band selection;
+masked and nonfinite selected pixels are
+excluded.](hyperspectaculR_files/figure-html/mandala-1.png)
 
 ``` r
 
@@ -67,7 +74,9 @@ available
 #> (`geom_raster()`).
 ```
 
-![](hyperspectaculR_files/figure-html/fusion-1.png)
+![Synthetic RGB fusion from three contiguous band groups, using finite
+available contributors and a shared spatial
+mask.](hyperspectaculR_files/figure-html/fusion-1.png)
 
 ``` r
 
@@ -240,6 +249,55 @@ Inspect each component before patchwork composition. The accessor
 rejects a combined patchwork. Records contain no source cube or
 arbitrary input metadata.
 
+## Composing publication panels
+
+A caption that fits a standalone figure can overlap its neighbour when
+the figure becomes a narrow panel. Choose the final output size before
+composing, and rewrap the displayed labels for the available width. Keep
+the full original-rendering records on the individual components. This
+two-column example uses the optional `patchwork` package and a 7.2 by
+5.4 inch figure:
+
+``` r
+
+wrap_label <- function(label, width) {
+  paste(strwrap(gsub("\n", " ", label, fixed = TRUE), width = width),
+        collapse = "\n")
+}
+originals <- list(
+  hsa_mandala(cube, n_rings = 8, interpolate = FALSE),
+  hsa_fusion(cube, interpolate = FALSE)
+)
+components <- lapply(originals, function(plot) {
+  plot + ggplot2::labs(
+    subtitle = wrap_label(plot$labels$subtitle, 43),
+    caption = wrap_label(plot$labels$caption, 53)
+  ) + ggplot2::theme(plot.caption = ggplot2::element_text(hjust = 0))
+})
+if (!identical(lapply(components, hsa_provenance),
+                 lapply(originals, hsa_provenance))) {
+  cli::cli_abort("Rewrapping changed original provenance.",
+                 class = "hsa_example_provenance_error")
+}
+combined <- patchwork::wrap_plots(components, ncol = 2) +
+  patchwork::plot_annotation(theme = hsa_theme())
+combined
+#> Warning: Removed 98 rows containing missing values or values outside the scale range
+#> (`geom_raster()`).
+```
+
+![Side-by-side synthetic mandala and RGB fusion with separately wrapped
+subtitles and captions for a 7.2 by 5.4 inch
+layout.](hyperspectaculR_files/figure-html/composition-1.png)
+
+Export with the same dimensions, for example
+`ggplot2::ggsave("spectral-panels.png", combined, width = 7.2, height = 5.4, dpi = 300)`.
+The character widths above suit this example; longer labels, another
+font or a different panel width require a fresh visual check. Inspect
+`hsa_provenance(components[[1]])` or the second component for
+calculation details; the combined patchwork intentionally has no single
+provenance record.
+
 ## Exact density populations
 
 ``` r
@@ -249,7 +307,9 @@ density <- hsa_spectral_density(cube, nbins = 32, limits = c(.1, .6),
 density
 ```
 
-![](hyperspectaculR_files/figure-html/density-1.png)
+![Per-band retained shares for synthetic values from 0.1 to 0.6, with
+binned means, pixel envelopes and global raw-value percentile
+references.](hyperspectaculR_files/figure-html/density-1.png)
 
 ``` r
 
@@ -293,7 +353,9 @@ hsa_spectral_gradient(example)$data$raw_value
 hsa_spectral_gradient(cube)
 ```
 
-![](hyperspectaculR_files/figure-html/slopes-1.png)
+![Nonnegative RMS spectral slope of the synthetic cube in input value
+per nm; masked and incomplete spectra are
+transparent.](hyperspectaculR_files/figure-html/slopes-1.png)
 
 The independently verified values are 0.4 and approximately 0.894427 per
 nm. Experimental RMS slope is `G = sqrt(sum(h * (diff(x)/h)^2)/L)` for
@@ -310,7 +372,9 @@ interpolating extra points does not reconstruct absent information.
 hsa_spectral_quartiles(cube)
 ```
 
-![](hyperspectaculR_files/figure-html/quartiles-1.png)
+![Synthetic within-pixel 25th percentile, median and 75th percentile
+panels with one shared display scale; complete spectra are
+required.](hyperspectaculR_files/figure-html/quartiles-1.png)
 
 ``` r
 

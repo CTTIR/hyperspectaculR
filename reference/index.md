@@ -32,8 +32,8 @@ quartiles; descriptive quantities with stated sampling assumptions.
 
 ## Appearance
 
-A theme for image panels, and colour ramps restricted to those that are
-monotonic in lightness so ordering survives greyscale printing.
+A theme for image panels and perceptually uniform colour ramps. The
+non-monotonic turbo option remains available with an explicit warning.
 
 - [`hsa_theme()`](https://cttir.github.io/hyperspectaculR/reference/hsa_theme.md)
   : A Theme for Hyperspectral Figures

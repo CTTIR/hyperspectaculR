@@ -30,12 +30,13 @@ hsa_fusion(
 
   An `hsi_cube` (from hyperspectR) or a 3-D array with dimensions
   `(rows, cols, bands)`, of integer or double values. Optional
-  `wavelengths` metadata must be finite, unique and strictly increasing
-  in nm. Without it, coordinates are band indices. An optional logical
-  spatial `mask` has dimensions `(rows, cols)` and no missing entries;
-  `FALSE` excludes a pixel. Arrays may carry these as attributes; an
-  `hsi_cube` may carry them as list fields. Nonfinite observations are
-  excluded.
+  `wavelengths` metadata must be a numeric vector, finite, unique and
+  strictly increasing in nm. Without it, coordinates are band indices.
+  An optional logical spatial `mask` has dimensions `(rows, cols)` and
+  no missing entries; `FALSE` excludes a pixel. Arrays may carry these
+  as attributes; an `hsi_cube` may carry them as exactly named list
+  fields. Dimension names do not alter spatial sizes. Nonfinite
+  observations are excluded.
 
 - red, green, blue:
 

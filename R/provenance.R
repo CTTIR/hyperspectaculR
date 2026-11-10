@@ -41,6 +41,11 @@
 #' @param plot A plot returned by a hyperspectaculR renderer.
 #'
 #' @return A compact named list describing the original rendering.
+#' @examples
+#' p <- hsa_fusion(hsa_demo_cube())
+#' record <- hsa_provenance(p)
+#' names(record)
+#' record$selection
 #' @export
 hsa_provenance <- function(plot) {
   if (inherits(plot, "patchwork")) {

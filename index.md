@@ -1,11 +1,10 @@
 # hyperspectaculR ![hyperspectaculR logo](reference/figures/logo-with-name.png)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21889974.svg)](https://doi.org/10.5281/zenodo.21889974)
 [![R-CMD-check](https://github.com/CTTIR/hyperspectaculR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/CTTIR/hyperspectaculR/actions/workflows/R-CMD-check.yaml)
 [![pkgdown](https://github.com/CTTIR/hyperspectaculR/actions/workflows/pkgdown.yaml/badge.svg)](https://cttir.github.io/hyperspectaculR/)
 
 Artistic compositions and descriptive summaries of hyperspectral
-imagery. The **0.2.0 candidate** consumes an `hsi_cube` or numeric
+imagery. Version **0.3.0** consumes an `hsi_cube` or numeric
 `(rows, cols, bands)` array and returns composable ggplots. It does not
 read recordings, calibrate values or infer physiology. Readers such as
 [hyperspectR](https://github.com/CTTIR/hyperspectR) provide upstream
@@ -19,13 +18,23 @@ calculated and how it was displayed.
 
 ## Install and reproduce
 
-Requires R \>= 4.1.0 and ggplot2 \>= 3.4.0. To install this candidate
-from a local checkout and regenerate its public synthetic gallery:
+Requires R \>= 4.1.0, ggplot2 \>= 3.4.0, viridisLite \>= 0.4.0 and the
+dependencies in `DESCRIPTION`. From a local checkout, install required
+dependencies and the package with:
 
 ``` sh
-R CMD INSTALL .
+Rscript -e 'install.packages("remotes", repos = "https://cloud.r-project.org")'
+Rscript -e 'remotes::install_local(".", dependencies = NA, upgrade = "never", build_vignettes = FALSE)'
 Rscript data-raw/make-showcase.R
 ```
+
+This installs required packages without updating unrelated installed
+packages. If an installed dependency is below its declared minimum,
+update that dependency explicitly and retry. Building the optional
+vignette also requires `knitr`, `rmarkdown` and Pandoc; set
+`build_vignettes = TRUE` when those are available. The default gallery
+command uses synthetic data. Leave the optional recording path variables
+unset when reproducing it.
 
 For optional patchwork composition with ggplot2 3.4.0, the tested
 compatible version is patchwork 1.1.3; current patchwork requires a
@@ -78,7 +87,10 @@ contribution in all three channels. Default fusion uses disjoint
 contiguous index thirds, highest indices to red, regardless of `by`.
 Explicit wavelength targets select the nearest measured band, ties
 toward the shorter wavelength. Index requests are whole indices;
-physical requests require strictly increasing wavelength metadata in nm.
+physical requests require a strictly increasing numeric wavelength
+vector in nm. Cube fields use exact names (`data`, `mask`,
+`wavelengths`); similarly named metadata does not supply or override
+these fields.
 
 Available-case provenance retains each channel’s selected-band count,
 minimum/maximum contributors, complete-pixel count and
@@ -219,16 +231,22 @@ selector for explicit physical units.
 
 ## Documentation, support and license
 
-The [package
-vignette](https://github.com/CTTIR/hyperspectaculR/blob/main/vignettes/hyperspectaculR.Rmd)
-explains the supported compositions and their interpretation. Use
+The [rendered
+guide](https://cttir.github.io/hyperspectaculR/articles/hyperspectaculR.html)
+explains the supported compositions and their interpretation; its
+[vignette
+source](https://github.com/CTTIR/hyperspectaculR/blob/main/vignettes/hyperspectaculR.Rmd)
+is also available. Use
 [`help(package = "hyperspectaculR")`](https://cttir.github.io/hyperspectaculR/reference)
 for function contracts and `citation("hyperspectaculR")` for citation
-details. Report reproducible issues at
+details. The candidate has no confirmed published DOI. Cite its package
+version and repository. Publication metadata is tracked in the
+repository file `planning/evidence/maintenance-2026-11-02.md`. Report
+reproducible issues at
 <https://github.com/CTTIR/hyperspectaculR/issues>.
 
-MIT licensed; see
-[LICENSE](https://github.com/CTTIR/hyperspectaculR/blob/main/LICENSE).
+MIT licensed; see the [full license
+text](https://github.com/CTTIR/hyperspectaculR/blob/main/LICENSE.md).
 
 ## Use of LLM tools
 
@@ -239,8 +257,10 @@ scripts), and code refactoring. Tools included [Chat
 AI](https://kisski.gwdg.de/leistungen/2-02-llm-service/), the KISSKI
 (GWDG) service, and self-hosted **Mistral Small (24B, Apache-2.0)**
 served through a local **vLLM architecture** on an Ubuntu Linux
-workstation with Intel processors and NVIDIA GPUs. The self-hosted model
-ran locally, with no data sent to third parties.
+workstation with Intel processors and NVIDIA GPUs. Self-hosted use also
+includes models that were further trained (fine-tuned) or weight-edited
+in-house for specific tasks. All self-hosted models ran locally, with no
+data sent to third parties.
 
 All scientific claims, methodological choices, analyses, interpretations
 and conclusions remain the authors’ own. Where applicable, LLM-generated
