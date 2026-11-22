@@ -62,13 +62,9 @@ jobs:
         shell: Rscript {0}
         run: |
           library(patchwork)
-          if (Sys.getenv("GGPLOT_VERSION") == "3.4.0") {
-            # The SVG baseline targets current ggplot; numeric geometry and
-            # explicit patchwork integration still run on the old-ggplot leg.
-            Sys.setenv(HSA_VDIFFR = "0")
-          } else {
-            Sys.setenv(HSA_REQUIRE_VDIFFR = "1")
-          }
+          # The SVG baseline targets current ggplot (>= 4.0), which needs R >= 4.2;
+          # numeric geometry and explicit patchwork integration still run here.
+          Sys.setenv(HSA_VDIFFR = "0")
           testthat::test_local(".", reporter = "summary", stop_on_failure = TRUE)
           pkgload::load_all(".", quiet = TRUE)
           p <- hsa_fusion(hsa_demo_cube(rows = 3, cols = 4))
