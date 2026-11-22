@@ -1,0 +1,5 @@
+# Reviewed exceptions to the owner's push guard (one glob per line).
+# Branding tables read by the logo and site tooling; no research data.
+tools/branding/*.csv
+# Evidence files of the maintenance records; synthetic, no study data.
+planning/evidence/*
