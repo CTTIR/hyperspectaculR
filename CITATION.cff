@@ -3,9 +3,14 @@ message: Version 0.3.0 is not yet published. If you use this software, please ci
 type: software
 title: 'hyperspectaculR: Artistic visualisation of hyperspectral imaging data'
 version: 0.3.0
+doi: 10.5281/zenodo.21889974
 authors:
 - family-names: Heller
   given-names: Raban
   orcid: https://orcid.org/0000-0001-8006-9742
 repository-code: https://github.com/CTTIR/hyperspectaculR
 license: MIT
+identifiers:
+- type: doi
+  value: 10.5281/zenodo.21889974
+  description: Zenodo DOI (reserved; resolves once the record is published)
