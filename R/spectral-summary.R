@@ -1,13 +1,20 @@
-.spectral_intervals <- function(cube) {
+.spectral_intervals <- function(cube, call = rlang::caller_env()) {
   if (!cube$has_wavelengths) {
-    cli::cli_abort("Physical spectral slopes require wavelength metadata in nm.")
+    cli::cli_abort("Physical spectral slopes require wavelength metadata in nm.",
+                   call = call)
   }
   nb <- dim(cube$data)[3L]
-  if (nb < 2L) cli::cli_abort("Need at least 2 bands to measure spectral slope.")
+  if (nb < 2L) {
+    cli::cli_abort("Need at least 2 bands to measure spectral slope.",
+                   call = call)
+  }
   span <- cube$coordinates[nb] - cube$coordinates[1L]
   intervals <- diff(cube$coordinates)
   if (!is.finite(span) || span <= 0 || any(!is.finite(intervals) | intervals <= 0)) {
-    cli::cli_abort("Wavelength intervals and span must be finite, positive and representable.")
+    cli::cli_abort(
+      "Wavelength intervals and span must be finite, positive and representable.",
+      call = call
+    )
   }
   list(intervals = intervals, span = span)
 }
@@ -60,7 +67,8 @@
 }
 
 .spectral_change <- function(cube, denominator, rms = FALSE,
-                             denominator_exponent = 0) {
+                             denominator_exponent = 0,
+                             call = rlang::caller_env()) {
   d <- dim(cube$data)
   valid <- matrix(TRUE, d[1L], d[2L])
   for (b in seq_len(d[3L])) valid <- valid & is.finite(.cube_band(cube, b))
@@ -104,7 +112,10 @@
   result[small] <- (acc[small] * 2^(exponent[small] + 1022)) * 2^-1022
   result[acc == 0] <- 0
   if (any(!is.finite(result))) {
-    cli::cli_abort("Requested spectral quantity is not representable with finite numeric arithmetic.")
+    cli::cli_abort(
+      "Requested spectral quantity is not representable with finite numeric arithmetic.",
+      call = call
+    )
   }
   out[valid] <- result
   out
@@ -136,6 +147,7 @@ hsa_spectral_gradient <- function(cube, palette = "inferno",
                                   value_label = "input value", interpolate = TRUE) {
   cb <- .as_cube(cube)
   stretch <- match.arg(stretch)
+  palette <- .resolve_palette(palette)
   probs <- .validate_probs(probs)
   display_limits <- .validate_display_limits(display_limits)
   value_label <- .validate_value_label(value_label)
@@ -170,7 +182,7 @@ hsa_spectral_gradient <- function(cube, palette = "inferno",
     "RMS magnitude of the piecewise-linear spectral derivative; short intervals and noise are amplified",
     "Not a spatial gradient, signed derivative or uncertainty; incomplete spectra are transparent",
     .stretch_caption(st, value_label = units), sep = "; "
-  ))
+  ), width = .label_width(dim(cb$data)))
   p <- .render_scalar_image(df, palette, st$display_limits, interpolate,
                             "RMS spectral slope", "Experimental descriptive spectral summary", caption)
   .attach_provenance(
@@ -210,7 +222,10 @@ hsa_spectral_gradient <- function(cube, palette = "inferno",
     hsa_theme() + ggplot2::theme(legend.position = "right",
                                plot.caption.position = "plot",
                                plot.caption = ggplot2::element_text(hjust = 0),
-                               strip.text = ggplot2::element_text(colour = "#E8E8EC"))
+                               strip.text = ggplot2::element_text(
+                                 colour = "#E8E8EC",
+                                 margin = ggplot2::margin(b = 4)
+                               ))
 }
 
 #' Within-Pixel Spectral Quartiles
@@ -239,6 +254,7 @@ hsa_spectral_quartiles <- function(cube, palette = "magma",
                                    value_label = "input value", interpolate = TRUE) {
   cb <- .as_cube(cube)
   stretch <- match.arg(stretch)
+  palette <- .resolve_palette(palette)
   probs <- .validate_probs(probs)
   display_limits <- .validate_display_limits(display_limits)
   value_label <- .validate_value_label(value_label)

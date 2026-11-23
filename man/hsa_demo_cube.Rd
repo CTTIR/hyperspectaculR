@@ -14,7 +14,9 @@ hsa_demo_cube(rows = 48L, cols = 64L, bands = 24L, seed = 42L)
 \item{seed}{Random seed. Default \code{42}.}
 }
 \value{
-A list with \code{data} and \code{wavelengths}, classed as \code{hsi_cube}.
+A list with \code{data} (a \code{rows} by \code{cols} by \code{bands} array),
+\code{wavelengths} (nm, from 500 in steps of 5) and \code{metadata}, classed as
+\code{hsi_cube}.
 }
 \description{
 A deterministic synthetic cube for examples and tests, shaped like an

@@ -33,7 +33,9 @@ uses the image centre.}
 \item{n_rings}{Number of annuli. Default \code{36}. More rings sample the
 spectrum more finely; fewer give bolder banding.}
 
-\item{palette}{Palette name passed to \code{\link[=hsa_palette]{hsa_palette()}}.}
+\item{palette}{Palette name passed to \code{\link[=hsa_palette]{hsa_palette()}}. An unambiguous
+abbreviation is accepted; the full name is checked before any calculation
+and recorded in the provenance.}
 
 \item{stretch}{Contrast stretch: \code{"percentile"} (default), \code{"range"} or
 \code{"none"}.}
@@ -69,6 +71,11 @@ default radius-to-band-index mapping is linear. Wavelength sampling uses
 equally spaced physical targets and nearest measured bands, with ties toward
 shorter wavelengths. Repeated selections and empty rings retain the geometry
 and are disclosed in the caption and provenance.
+
+Subtitle and caption lines are wrapped to the width of the image
+panel on a default-size device (about 7 by 5 inches), which depends on the
+column-to-row ratio of the cube. For a much smaller or narrower output,
+rewrap the labels as shown in \code{vignette("hyperspectaculR")}.
 }
 \examples{
 cube <- hsa_demo_cube()

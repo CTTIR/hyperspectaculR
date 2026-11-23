@@ -38,7 +38,9 @@ Legend labels are returned to raw counts or shares.}
 \item{normalise}{\code{"none"} (default) displays raw counts; \code{"band"} displays
 shares of the retained count in each band. Empty bands remain missing.}
 
-\item{palette}{Palette name passed to \code{\link[=hsa_palette]{hsa_palette()}}.}
+\item{palette}{Palette name passed to \code{\link[=hsa_palette]{hsa_palette()}}. An unambiguous
+abbreviation is accepted; the full name is checked before any calculation
+and recorded in the provenance.}
 
 \item{show_limits}{Logical. Draw global raw eligible-value percentiles using
 \code{probs}. These references include finite observations outside \code{limits} and

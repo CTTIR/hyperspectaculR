@@ -26,7 +26,9 @@ excludes a pixel. Arrays may carry these as attributes; an \code{hsi_cube} may
 carry them as exactly named list fields. Dimension names do not alter
 spatial sizes. Nonfinite observations are excluded.}
 
-\item{palette}{Palette name passed to \code{\link[=hsa_palette]{hsa_palette()}}.}
+\item{palette}{Palette name passed to \code{\link[=hsa_palette]{hsa_palette()}}. An unambiguous
+abbreviation is accepted; the full name is checked before any calculation
+and recorded in the provenance.}
 
 \item{normalise}{Logical. Divide by the number of band steps, so the value
 is a mean absolute step rather than a total. Default \code{TRUE}.}

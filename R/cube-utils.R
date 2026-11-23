@@ -55,6 +55,40 @@ NULL
   value_label
 }
 
+.palette_names <- c("viridis", "magma", "inferno", "plasma", "cividis", "mako",
+                    "rocket", "turbo")
+
+# Resolve a palette request to its full name before any calculation, so that
+# an invalid name fails early and provenance records the palette actually
+# drawn. Unambiguous abbreviations stay accepted, as with match.arg().
+.resolve_palette <- function(palette, arg = "palette",
+                             call = rlang::caller_env()) {
+  if (is.null(palette)) return(.palette_names[1L])
+  matched <- if (is.character(palette) && length(palette) == 1L &&
+                 !is.na(palette)) {
+    pmatch(palette, .palette_names)
+  } else {
+    NA_integer_
+  }
+  if (is.na(matched)) {
+    choices <- .palette_names
+    cli::cli_abort(c(
+      "{.arg {arg}} must be one palette name.",
+      "i" = "Available palettes: {.val {choices}}."
+    ), call = call)
+  }
+  .palette_names[matched]
+}
+
+# Characters per label line that fit beside a fixed-aspect image panel on a
+# default-size device (about 7 by 5 inches). The panel narrows with the
+# column-to-row ratio, so wide fixed line lengths ran past its edge.
+.label_width <- function(dimensions, scale = 1, minimum = 40L,
+                         maximum = 110L) {
+  aspect <- dimensions[2L] / dimensions[1L]
+  as.integer(min(maximum, max(minimum, floor(56 * aspect * scale))))
+}
+
 # Accept an hsi_cube without requiring hyperspectR to be installed.
 .as_cube <- function(x, arg = rlang::caller_arg(x), call = rlang::caller_env()) {
   is_hsi <- inherits(x, "hsi_cube")
@@ -158,34 +192,6 @@ NULL
   )
 }
 
-# Resolve a band given either an index or a wavelength coordinate.
-.band_index <- function(cube, band = NULL, wavelength = NULL,
-                        call = rlang::caller_env()) {
-  nb <- dim(cube$data)[3L]
-  if (!is.null(wavelength)) {
-    if (!is.null(band)) {
-      cli::cli_abort("Give either {.arg band} or {.arg wavelength}, not both.",
-                     call = call)
-    }
-    if (!cube$has_wavelengths) {
-      cli::cli_abort("Wavelength selection requires wavelength metadata.", call = call)
-    }
-    if (!is.numeric(wavelength) || length(wavelength) != 1L ||
-        !is.finite(wavelength) || wavelength < cube$coordinates[1L] ||
-        wavelength > cube$coordinates[nb]) {
-      cli::cli_abort("{.arg wavelength} must be one finite value inside the wavelength range.",
-                     call = call)
-    }
-    return(which.min(abs(cube$coordinates - wavelength)))
-  }
-  if (is.null(band)) return(max(1L, round(nb / 2)))
-  if (!is.numeric(band) || length(band) != 1L || !is.finite(band) ||
-      band != floor(band) || band < 1L || band > nb) {
-    cli::cli_abort("{.arg band} must be one whole index in 1:{nb}.", call = call)
-  }
-  as.integer(band)
-}
-
 .rescale_affine <- function(x, limits) {
   width <- limits[2L] - limits[1L]
   if (is.finite(width)) return((x - limits[1L]) / width)
@@ -241,26 +247,34 @@ NULL
 
 # Rescale finite observations to [0, 1] using a stated contrast stretch.
 .stretch <- function(x, method = c("percentile", "range", "none"),
-                     probs = c(0.02, 0.98), display_limits = c(0, 1)) {
+                     probs = c(0.02, 0.98), display_limits = c(0, 1),
+                     call = rlang::caller_env()) {
   method <- match.arg(method)
-  probs <- .validate_probs(probs)
-  display_limits <- .validate_display_limits(display_limits)
+  probs <- .validate_probs(probs, call = call)
+  display_limits <- .validate_display_limits(display_limits, call = call)
   if (!typeof(x) %in% c("integer", "double") || is.complex(x)) {
-    cli::cli_abort("{.arg x} must be real numeric data.")
+    cli::cli_abort("The values to display must be real numeric data.",
+                   call = call)
   }
 
   valid <- is.finite(x)
   finite <- x[valid]
-  if (!length(finite)) cli::cli_abort("{.arg x} contains no finite values.")
+  if (!length(finite)) {
+    cli::cli_abort(c(
+      "The rendered quantity contains no finite values.",
+      "i" = "Every pixel is masked, nonfinite or has an incomplete spectrum."
+    ), call = call)
+  }
   out <- x
   out[!valid] <- NA_real_
   fallback <- NULL
 
   if (identical(method, "none")) {
     if (any(finite < display_limits[1L] | finite > display_limits[2L])) {
-      cli::cli_abort(
-        "Finite values must lie within {.arg display_limits} when {.arg method} is {.val none}."
-      )
+      cli::cli_abort(c(
+        "Finite values must lie within {.arg display_limits} when {.arg stretch} is {.val none}.",
+        "x" = "The finite values span [{format(min(finite), digits = 4)}, {format(max(finite), digits = 4)}]."
+      ), call = call)
     }
     limits <- display_limits
     effective <- "none"
@@ -307,7 +321,9 @@ NULL
 
 .as_long <- function(m, value = "value") {
   d <- dim(m)
-  if (length(d) != 2L) cli::cli_abort("Internal image data must be a matrix.")
+  if (length(d) != 2L) {
+    cli::cli_abort("Internal image data must be a matrix.", .internal = TRUE)
+  }
   out <- data.frame(
     x = rep(seq_len(d[2L]), each = d[1L]),
     y = rep(seq_len(d[1L]), times = d[2L]),
