@@ -317,9 +317,10 @@ NULL
 
   if (identical(method, "none")) {
     if (any(finite < display_limits[1L] | finite > display_limits[2L])) {
+      span <- format(range(finite), digits = 4)
       cli::cli_abort(c(
         "Finite values must lie within {.arg display_limits} when {.arg stretch} is {.val none}.",
-        "x" = "The finite values span [{format(min(finite), digits = 4)}, {format(max(finite), digits = 4)}]."
+        "x" = "The finite values span [{span[1L]}, {span[2L]}]."
       ), call = call)
     }
     limits <- display_limits
