@@ -1,6 +1,14 @@
 /* Scientific figure colours encode the rendered values and must remain
    unchanged when the surrounding documentation changes its colour mode. */
 html[data-bs-theme] img.r-plt,
+html[data-bs-theme] pre .r-plt.img img,
 html[data-bs-theme] .template-home img[src*="gallery-"] {
   filter: none;
+}
+
+/* Reference examples are drawn on a transparent device. A fixed-aspect image
+   leaves part of that device free; fill it with the hsa_theme() background
+   instead of the default white. */
+html[data-bs-theme] pre .r-plt.img img {
+  background-color: #0B0B0F;
 }

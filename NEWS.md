@@ -40,7 +40,10 @@
 
 * The `hsa_theme()` example shows a visible raster, and the help page explains
   how to match the device background to the theme outside
-  `ggplot2::ggsave()`. The vignette and the site figures do so.
+  `ggplot2::ggsave()`. The vignette does so.
+* Example figures on the reference pages of the site keep their colours in
+  dark mode; the style rule that protects figures did not match them, so they
+  were shown colour-inverted.
 * The vignette introduction no longer names a superseded development version.
 * Removed an unused internal band-selection helper.
 
