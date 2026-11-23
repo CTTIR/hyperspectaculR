@@ -113,3 +113,45 @@ test_that("density axis titles and quartile strips keep clear of the panels", {
   expect_warning(ggplot2::ggplotGrob(density), NA)
   expect_warning(ggplot2::ggplotGrob(quartiles), NA)
 })
+
+test_that("row quantiles equal one type-7 quantile call per row", {
+  per_row <- function(values, probs) {
+    out <- matrix(NA_real_, nrow(values), length(probs))
+    for (i in seq_len(nrow(values))) {
+      out[i, ] <- hyperspectaculR:::.quantile_type7(values[i, ], probs)
+    }
+    out
+  }
+  row_quantiles <- hyperspectaculR:::.row_quantiles_type7
+  withr::local_seed(20261123)
+  tiny <- c(0, 4.9e-324, 1e-320, -3e-315, 2e-310, .Machine$double.xmin)
+  cases <- list(
+    ordinary = matrix(stats::rnorm(600), 100, 6),
+    tied = matrix(sample(c(0, 1, 2), 500, replace = TRUE), 100, 5),
+    single_band = matrix(stats::rnorm(20), 20, 1),
+    two_bands = matrix(stats::rnorm(40), 20, 2),
+    subnormal = matrix(sample(tiny, 500, replace = TRUE), 100, 5),
+    mixed = matrix(sample(c(tiny, 1, -1), 400, replace = TRUE), 100, 4),
+    extreme = matrix(sample(c(-1, 1) * .Machine$double.xmax, 400, replace = TRUE),
+                     100, 4)
+  )
+  for (values in cases) {
+    for (probs in list(c(.25, .5, .75), c(0, 1), .5)) {
+      expected <- per_row(values, probs)
+      expect_identical(row_quantiles(values, probs), expected)
+      # Several small blocks give the same result as one block.
+      expect_identical(row_quantiles(values, probs, block_cells = 7), expected)
+    }
+  }
+  expect_identical(dim(row_quantiles(matrix(numeric(), 0, 3), c(.25, .75))),
+                   c(0L, 2L))
+
+  cube <- hsa_demo_cube(rows = 5, cols = 6, bands = 7)
+  cube$data[2, 3, 4] <- NA_real_
+  plot <- hsa_spectral_quartiles(cube)
+  expected <- apply(cube$data, c(1, 2), function(spectrum) {
+    if (anyNA(spectrum)) return(rep(NA_real_, 3L))
+    stats::quantile(spectrum, c(.25, .5, .75), type = 7L, names = FALSE)
+  })
+  expect_identical(plot$data$raw_value, as.vector(aperm(expected, c(2, 3, 1))))
+})

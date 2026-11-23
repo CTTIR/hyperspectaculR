@@ -267,9 +267,8 @@ hsa_spectral_quartiles <- function(cube, palette = "magma",
   dim(values) <- c(d[1L] * d[2L], d[3L])
   valid <- rowSums(is.finite(values)) == d[3L]
   raw <- matrix(NA_real_, nrow(values), 3L)
-  for (i in which(valid)) {
-    raw[i, ] <- .quantile_type7(values[i, ], probabilities)
-  }
+  raw[valid, ] <- .row_quantiles_type7(values[valid, , drop = FALSE],
+                                       probabilities)
   st <- .stretch(raw, stretch, probs, display_limits)
   df <- .as_long(matrix(st$values[, 1L], d[1L], d[2L]))
   df <- df[rep(seq_len(nrow(df)), 3L), , drop = FALSE]

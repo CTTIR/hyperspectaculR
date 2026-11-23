@@ -224,6 +224,13 @@ NULL
   result
 }
 
+# Type-7 sample quantile, the default of stats::quantile(): with
+# h = (n - 1) p + 1 and j = floor(h), Q(p) = (1 - (h - j)) x[j] + (h - j) x[j + 1],
+# that is p(k) = (k - 1) / (n - 1) ("Type 7" in ?stats::quantile).
+# Hyndman, R. J. & Fan, Y. (1996). Sample quantiles in statistical packages.
+# The American Statistician 50(4), 361-365, Definition 7.
+# https://doi.org/10.1080/00031305.1996.10473566
+#
 # Callers supply finite observations and validated probabilities. Keep the
 # standard type-7 path unless a requested bracket needs tiny-value arithmetic;
 # do not rescale a mixed tiny/ordinary population as a whole.
@@ -241,6 +248,45 @@ NULL
   if (any(tiny)) {
     result[possible[tiny]] <- .stable_interpolate(left[tiny], right[tiny],
                                                  index[tiny] - lower[tiny])
+  }
+  result
+}
+
+# Type-7 quantiles of every row of a complete finite matrix. Each row is
+# ordered once and interpolated exactly as .quantile_type7() does for one
+# vector, so the results are identical without one quantile call per pixel.
+# Rows are processed in blocks to bound the memory of the ordering step.
+.row_quantiles_type7 <- function(values, probs, block_cells = 4e6) {
+  rows <- nrow(values)
+  n <- ncol(values)
+  result <- matrix(NA_real_, rows, length(probs))
+  if (!rows) return(result)
+  index <- 1 + (n - 1) * probs
+  lower <- floor(index)
+  upper <- ceiling(index)
+  weight <- index - lower
+  block_rows <- max(1L, as.integer(block_cells %/% n))
+  for (start in seq.int(1L, rows, by = block_rows)) {
+    block <- seq.int(start, min(rows, start + block_rows - 1L))
+    chunk <- values[block, , drop = FALSE]
+    size <- length(block)
+    ordered <- matrix(chunk[order(rep(seq_len(size), times = n), chunk)],
+                      nrow = size, byrow = TRUE)
+    for (k in seq_along(probs)) {
+      left <- ordered[, lower[k]]
+      right <- ordered[, upper[k]]
+      quantile <- left
+      between <- weight[k] > 0 & right != left
+      quantile[between] <- (1 - weight[k]) * left[between] +
+        weight[k] * right[between]
+      tiny <- abs(quantile) <= .Machine$double.xmin &
+        pmax(abs(left), abs(right)) <= .Machine$double.xmin
+      if (any(tiny)) {
+        quantile[tiny] <- .stable_interpolate(left[tiny], right[tiny],
+                                              weight[k])
+      }
+      result[block, k] <- quantile
+    }
   }
   result
 }
