@@ -25,6 +25,7 @@ greyscale
 hyperspectR
 hyperspectral
 inspectable
+knitr
 labelled
 neighbour
 nm
@@ -37,6 +38,7 @@ renderers
 representable
 reproducibly
 rewrap
+runnable
 th
 vLLM
 viridisLite
