@@ -32,13 +32,16 @@ resource_files:
 <!-- cttir-vignette-logo: end -->
 
 ```{r setup, include=FALSE}
+# The device background matches hsa_theme(): a fixed-aspect image does not
+# fill a device of another shape, and the rest would otherwise stay white.
 knitr::opts_chunk$set(fig.width = 7.2, fig.height = 5.4, dpi = 100,
+                     dev.args = list(bg = "#0B0B0F"),
                      collapse = TRUE, comment = "#>")
 library(hyperspectaculR)
 ```
 
-The 0.2.0.9001 development candidate creates compositions and descriptive
-summaries from an `hsi_cube` or real numeric `(rows, cols, bands)` array. Reading recordings and
+hyperspectaculR creates compositions and descriptive summaries from an
+`hsi_cube` or real numeric `(rows, cols, bands)` array. Reading recordings and
 calibration happen upstream. The default label is **input value**: a range
 such as 0–1 does not establish calibrated reflectance. These plots do not
 support physiological inference.
