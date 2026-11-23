@@ -21,9 +21,9 @@ journal.}
 \item{background}{Panel and plot background colour. Default \code{"#0B0B0F"}.
 A fixed-aspect image does not fill a device of another shape, and the
 remaining device area keeps the device background.
-\code{ggplot2::ggsave()} uses this colour automatically; for other devices,
-'knitr' chunks (\code{dev.args = list(bg = "#0B0B0F")}) and 'pkgdown' sites,
-set the device background to the same colour.}
+\code{ggplot2::ggsave()} uses this colour automatically; for other devices
+and for 'knitr' chunks (\code{dev.args = list(bg = "#0B0B0F")}), set the
+device background to the same colour.}
 
 \item{ink}{Foreground colour for text. Default \code{"#E8E8EC"}.}
 }

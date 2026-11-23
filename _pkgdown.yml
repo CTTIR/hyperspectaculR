@@ -10,11 +10,6 @@ template:
 development:
   mode: auto
 
-# Every figure uses the dark hsa_theme(). A fixed-aspect image does not fill
-# the device, so the device background matches the theme background.
-figures:
-  bg: "#0B0B0F"
-
 home:
   title: hyperspectaculR
   description: >

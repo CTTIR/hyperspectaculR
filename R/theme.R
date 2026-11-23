@@ -15,9 +15,9 @@
 #' @param background Panel and plot background colour. Default `"#0B0B0F"`.
 #'   A fixed-aspect image does not fill a device of another shape, and the
 #'   remaining device area keeps the device background.
-#'   `ggplot2::ggsave()` uses this colour automatically; for other devices,
-#'   'knitr' chunks (`dev.args = list(bg = "#0B0B0F")`) and 'pkgdown' sites,
-#'   set the device background to the same colour.
+#'   `ggplot2::ggsave()` uses this colour automatically; for other devices
+#'   and for 'knitr' chunks (`dev.args = list(bg = "#0B0B0F")`), set the
+#'   device background to the same colour.
 #' @param ink Foreground colour for text. Default `"#E8E8EC"`.
 #'
 #' @return A \pkg{ggplot2} theme object.
