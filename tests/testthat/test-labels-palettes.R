@@ -80,7 +80,8 @@ test_that("image labels are wrapped to the width of the panel", {
   expect_identical(width(c(48L, 64L)), 74L)
   expect_identical(width(c(48L, 64L, 24L)), 74L)
   expect_identical(width(c(64L, 64L)), 56L)
-  expect_identical(width(c(64L, 16L)), 40L)
+  expect_identical(width(c(64L, 16L)), 36L)
+  expect_identical(width(c(64L, 16L), scale = 0.5), 18L)
   expect_identical(width(c(16L, 640L)), 110L)
   expect_lt(width(c(48L, 64L), scale = 0.83), width(c(48L, 64L)))
 
@@ -100,6 +101,9 @@ test_that("image labels are wrapped to the width of the panel", {
     }
     expect_lte(longest(plots[[2L]]$labels$subtitle),
                width(dimensions, scale = 0.83))
+    selected <- seq.int(1L, 23L, by = 2L)
+    long <- hsa_fusion(cube, red = selected, green = 1:3, blue = 4:6)
+    expect_lte(longest(long$labels$subtitle), width(dimensions, scale = 0.83))
   }
 })
 

@@ -484,8 +484,11 @@ hsa_fusion <- function(cube, red = NULL, green = NULL, blue = NULL,
       sprintf("%s bands %s", name, .compact_band_label(idx))
     }
   }
-  subtitle <- paste(describe_group("R", ri), describe_group("G", gi),
-                    describe_group("B", bi), sep = "\n")
+  subtitle <- paste(vapply(
+    c(describe_group("R", ri), describe_group("G", gi),
+      describe_group("B", bi)),
+    .wrap_caption, character(1), width = .label_width(d, scale = 0.83)
+  ), collapse = "\n")
   channel_captions <- vapply(c("red", "green", "blue"), function(nm) {
     paste0(toupper(substr(nm, 1, 1)), ": ",
            .stretch_caption(enhancement[[nm]], value_label = value_label))

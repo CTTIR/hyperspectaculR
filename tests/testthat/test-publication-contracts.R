@@ -19,7 +19,8 @@ test_that("selection labels stay bounded without concealing actual selections", 
   expect_length(strsplit(default$labels$subtitle, "\n")[[1L]], 3L)
   selected <- seq.int(1L, 119L, by = 2L)
   custom <- hsa_fusion(cube, red = selected, green = 1:3, blue = 4:6)
-  expect_match(custom$labels$subtitle, "60 selected within 1-119; indices in provenance")
+  expect_match(gsub("[[:space:]]+", " ", custom$labels$subtitle),
+               "60 selected within 1-119; indices in provenance")
   expect_identical(hsa_provenance(custom)$selection$red$indices, selected)
   expect_lte(max(nchar(strsplit(custom$labels$subtitle, "\n")[[1L]])), 85L)
   expect_identical(hyperspectaculR:::.compact_band_label(c(5L, 1L)), "1,5")

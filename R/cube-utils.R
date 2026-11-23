@@ -83,10 +83,10 @@ NULL
 # Characters per label line that fit beside a fixed-aspect image panel on a
 # default-size device (about 7 by 5 inches). The panel narrows with the
 # column-to-row ratio, so wide fixed line lengths ran past its edge.
-.label_width <- function(dimensions, scale = 1, minimum = 40L,
+.label_width <- function(dimensions, scale = 1, minimum = 36L,
                          maximum = 110L) {
   aspect <- dimensions[2L] / dimensions[1L]
-  as.integer(min(maximum, max(minimum, floor(56 * aspect * scale))))
+  as.integer(floor(scale * min(maximum, max(minimum, 56 * aspect))))
 }
 
 # Accept an hsi_cube without requiring hyperspectR to be installed.
