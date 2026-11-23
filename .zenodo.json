@@ -5,7 +5,7 @@
   "description": "<p>Artistic compositions and descriptive summaries from hyperspectral imaging cubes and numeric arrays: radial spectral mandalas, cumulative spectral change, multi-band RGB fusion, exact spectral density, and experimental RMS spectral slope and within-pixel spectral quartiles. Returns composable ggplot objects with explicit validity, display domains and original-rendering provenance. Recording readers, calibration, three-dimensional sculptures and animations are outside this package.</p>",
   "creators": [
     {
-      "name": "Heller, Raban",
+      "name": "Heller, R.",
       "orcid": "0000-0001-8006-9742"
     }
   ],
