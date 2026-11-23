@@ -59,6 +59,10 @@
   so they were shown colour-inverted.
 - The vignette introduction no longer names a superseded development
   version.
+- The documentation is declared as British English (`Language: en-GB`);
+  the help pages, README and vignette use British spelling throughout.
+- `CITATION.cff` and `.zenodo.json` name the author as “R. Heller”, as
+  in DESCRIPTION.
 
 ### Internal
 

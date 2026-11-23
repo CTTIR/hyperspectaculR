@@ -77,7 +77,7 @@ hsa_provenance(p)$selection$ring_band_indices
 ```
 
 Default mandala targets are linear in band index. Physical targets are equally
-spaced in nm and select nearest measured bands, with ties toward shorter
+spaced in nm and select nearest measured bands, with ties towards shorter
 wavelengths. Repeated selections and empty rings preserve geometry; the full
 selection is in provenance. Unequal ring areas are a spatial composition,
 not a spectral distribution estimate. One ring selects the first band.

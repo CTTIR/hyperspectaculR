@@ -88,7 +88,7 @@ averages each channel’s finite contributors and still requires a
 contribution in all three channels. Default fusion uses disjoint
 contiguous index thirds, highest indices to red, regardless of `by`.
 Explicit wavelength targets select the nearest measured band, ties
-toward the shorter wavelength. Index requests are whole indices;
+towards the shorter wavelength. Index requests are whole indices;
 physical requests require a strictly increasing numeric wavelength
 vector in nm. Cube fields use exact names (`data`, `mask`,
 `wavelengths`); similarly named metadata does not supply or override
@@ -225,13 +225,13 @@ are new exports.
 
 Malformed masks or wavelengths, fractional/out-of-range indices,
 duplicate selections within a fusion group, incomplete explicit RGB
-groups, invalid counts/probabilities, conflicting flux normalization
+groups, invalid counts/probabilities, conflicting flux normalisation
 controls, and raw values outside `display_limits` now raise errors.
 Entirely invalid renderings fail clearly. Existing argument order and
-`normalise` flux behavior are retained; use the appended `normalization`
-selector for explicit physical units.
+`normalise` flux behaviour are retained; use the appended
+`normalization` selector for explicit physical units.
 
-## Documentation, support and license
+## Documentation, support and licence
 
 The [rendered
 guide](https://cttir.github.io/hyperspectaculR/articles/hyperspectaculR.html)
@@ -247,7 +247,7 @@ repository file `planning/evidence/maintenance-2026-11-02.md`. Report
 reproducible issues at
 <https://github.com/CTTIR/hyperspectaculR/issues>.
 
-MIT licensed; see the [full license
+MIT licensed; see the [full licence
 text](https://github.com/CTTIR/hyperspectaculR/blob/main/LICENSE.md).
 
 ## Use of LLM tools
