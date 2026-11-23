@@ -110,8 +110,9 @@ test_that("wavelength-target mandalas retain selection and ring geometry", {
   expect_identical(s$ring_pixel_counts, c(1L, 0L, 0L, 0L, 0L))
   expect_identical(s$empty_rings, 2:5)
   expect_identical(s$repeated_rings, 4L)
-  expect_match(p$labels$caption, "Spatial composition")
-  expect_match(p$labels$caption, "1 repeated selections; 4 empty rings")
+  caption <- gsub("[[:space:]]+", " ", p$labels$caption)
+  expect_match(caption, "Spatial composition")
+  expect_match(caption, "1 repeated selections; 4 empty rings")
   cube$wavelengths <- c(500, 501, 502, 600)
   s <- hsa_provenance(hsa_mandala(cube, n_rings = 3, sampling = "wavelength"))$selection
   expect_equal(s$ring_coordinates, c(500, 502, 600))

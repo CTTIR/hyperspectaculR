@@ -28,7 +28,13 @@ hsa_theme(
 
 - background:
 
-  Panel and plot background colour. Default `"#0B0B0F"`.
+  Panel and plot background colour. Default `"#0B0B0F"`. A fixed-aspect
+  image does not fill a device of another shape, and the remaining
+  device area keeps the device background.
+  [`ggplot2::ggsave()`](https://ggplot2.tidyverse.org/reference/ggsave.html)
+  uses this colour automatically; for other devices and for 'knitr'
+  chunks (`dev.args = list(bg = "#0B0B0F")`), set the device background
+  to the same colour.
 
 - ink:
 
@@ -49,6 +55,10 @@ compatible with
 
 ``` r
 library(ggplot2)
-ggplot(data.frame(x = 1, y = 1), aes(x, y)) + geom_point() + hsa_theme()
+ggplot(faithfuld, aes(waiting, eruptions, fill = density)) +
+  geom_raster() +
+  scale_fill_gradientn(colours = hsa_palette("magma")) +
+  labs(title = "Old Faithful eruptions", caption = "Dark image-panel theme") +
+  hsa_theme()
 
 ```

@@ -51,6 +51,8 @@ hsa_mandala(
 
   Palette name passed to
   [`hsa_palette()`](https://cttir.github.io/hyperspectaculR/reference/hsa_palette.md).
+  An unambiguous abbreviation is accepted; the full name is checked
+  before any calculation and recorded in the provenance.
 
 - stretch:
 
@@ -93,6 +95,12 @@ sampling uses equally spaced physical targets and nearest measured
 bands, with ties toward shorter wavelengths. Repeated selections and
 empty rings retain the geometry and are disclosed in the caption and
 provenance.
+
+Subtitle and caption lines are wrapped to the width of the image panel
+on a default-size device (about 7 by 5 inches), which depends on the
+column-to-row ratio of the cube. For a much smaller or narrower output,
+rewrap the labels as shown in
+[`vignette("hyperspectaculR")`](https://cttir.github.io/hyperspectaculR/articles/hyperspectaculR.md).
 
 ## Examples
 

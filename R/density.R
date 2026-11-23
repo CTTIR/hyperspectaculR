@@ -206,6 +206,10 @@
     hsa_theme() +
     ggplot2::theme(
       axis.title = ggplot2::element_text(colour = "#E8E8EC", size = 9),
+      axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 5)),
+      axis.title.y = ggplot2::element_text(
+        angle = 90, margin = ggplot2::margin(r = 6)
+      ),
       axis.text = ggplot2::element_text(colour = "#9A9AA4", size = 8),
       axis.line = ggplot2::element_line(colour = "#3A3A44", linewidth = 0.3)
     )
@@ -275,6 +279,7 @@ hsa_spectral_density <- function(cube, nbins = 128L, limits = NULL,
   nbins <- .validate_count(nbins, "nbins", minimum = 2L)
   transform <- match.arg(transform)
   normalise <- match.arg(normalise)
+  palette <- .resolve_palette(palette)
   show_limits <- .validate_flag(show_limits, "show_limits")
   probs <- .validate_probs(probs)
   value_label <- .validate_value_label(value_label)

@@ -13,13 +13,22 @@
 #'   keeps figures portable; set it explicitly when embedding fonts for a
 #'   journal.
 #' @param background Panel and plot background colour. Default `"#0B0B0F"`.
+#'   A fixed-aspect image does not fill a device of another shape, and the
+#'   remaining device area keeps the device background.
+#'   `ggplot2::ggsave()` uses this colour automatically; for other devices
+#'   and for 'knitr' chunks (`dev.args = list(bg = "#0B0B0F")`), set the
+#'   device background to the same colour.
 #' @param ink Foreground colour for text. Default `"#E8E8EC"`.
 #'
 #' @return A \pkg{ggplot2} theme object.
 #'
 #' @examples
 #' library(ggplot2)
-#' ggplot(data.frame(x = 1, y = 1), aes(x, y)) + geom_point() + hsa_theme()
+#' ggplot(faithfuld, aes(waiting, eruptions, fill = density)) +
+#'   geom_raster() +
+#'   scale_fill_gradientn(colours = hsa_palette("magma")) +
+#'   labs(title = "Old Faithful eruptions", caption = "Dark image-panel theme") +
+#'   hsa_theme()
 #'
 #' @export
 hsa_theme <- function(base_size = 11, base_family = "",
@@ -71,7 +80,11 @@ hsa_theme <- function(base_size = 11, base_family = "",
 hsa_palette <- function(name = c("viridis", "magma", "inferno", "plasma",
                                  "cividis", "mako", "rocket", "turbo"),
                         n = 256L, direction = 1) {
-  name <- match.arg(name)
+  name <- if (missing(name) || identical(name, .palette_names)) {
+    .palette_names[1L]
+  } else {
+    .resolve_palette(name, arg = "name")
+  }
   n <- .validate_count(n, "n")
   if (!is.numeric(direction) || length(direction) != 1L ||
       !is.finite(direction) || !direction %in% c(-1, 1)) {

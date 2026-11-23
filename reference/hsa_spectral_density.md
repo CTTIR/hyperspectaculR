@@ -58,6 +58,8 @@ hsa_spectral_density(
 
   Palette name passed to
   [`hsa_palette()`](https://cttir.github.io/hyperspectaculR/reference/hsa_palette.md).
+  An unambiguous abbreviation is accepted; the full name is checked
+  before any calculation and recorded in the provenance.
 
 - show_limits:
 

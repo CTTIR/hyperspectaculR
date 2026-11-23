@@ -26,7 +26,8 @@ hsa_demo_cube(rows = 48L, cols = 64L, bands = 24L, seed = 42L)
 
 ## Value
 
-A list with `data` and `wavelengths`, classed as `hsi_cube`.
+A list with `data` (a `rows` by `cols` by `bands` array), `wavelengths`
+(nm, from 500 in steps of 5) and `metadata`, classed as `hsi_cube`.
 
 ## Examples
 

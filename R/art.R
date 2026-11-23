@@ -75,7 +75,9 @@
 #'   uses the image centre.
 #' @param n_rings Number of annuli. Default `36`. More rings sample the
 #'   spectrum more finely; fewer give bolder banding.
-#' @param palette Palette name passed to [hsa_palette()].
+#' @param palette Palette name passed to [hsa_palette()]. An unambiguous
+#'   abbreviation is accepted; the full name is checked before any calculation
+#'   and recorded in the provenance.
 #' @param stretch Contrast stretch: `"percentile"` (default), `"range"` or
 #'   `"none"`.
 #' @param probs Percentiles for `stretch = "percentile"`. Default
@@ -86,6 +88,11 @@
 #'   `"input value"`. A reflectance label requires known upstream calibration;
 #'   numeric range alone cannot establish calibration.
 #' @param interpolate Logical; interpolate raster pixels. Default `TRUE`.
+#'
+#' @details Subtitle and caption lines are wrapped to the width of the image
+#'   panel on a default-size device (about 7 by 5 inches), which depends on the
+#'   column-to-row ratio of the cube. For a much smaller or narrower output,
+#'   rewrap the labels as shown in `vignette("hyperspectaculR")`.
 #'
 #' @return A \pkg{ggplot2} object.
 #'
@@ -103,6 +110,7 @@ hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
   cb <- .as_cube(cube)
   sampling <- match.arg(sampling)
   stretch <- match.arg(stretch)
+  palette <- .resolve_palette(palette)
   probs <- .validate_probs(probs)
   display_limits <- .validate_display_limits(display_limits)
   value_label <- .validate_value_label(value_label)
@@ -173,7 +181,7 @@ hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
     "equally spaced wavelength targets; nearest measured bands"
   subtitle <- .wrap_caption(
     sprintf("%d rings; %s (%s)", n_rings, sampling_note, coordinate_note),
-    width = 80L
+    width = .label_width(d, scale = 0.83)
   )
   caption <- .wrap_caption(paste(
     .stretch_caption(st, value_label = value_label),
@@ -186,7 +194,7 @@ hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
     sprintf("%d repeated selections; %d empty rings", length(repeated_rings), length(empty_rings)),
     "Spatial composition; unequal annular areas do not estimate the spectral distribution",
     sep = "; "
-  ))
+  ), width = .label_width(d))
 
   p <- .render_scalar_image(
     df, palette, domain, interpolate,
@@ -255,6 +263,7 @@ hsa_spectral_flux <- function(cube, palette = "inferno", normalise = TRUE,
   legacy_explicit <- !missing(normalise)
   cb <- .as_cube(cube)
   stretch <- match.arg(stretch)
+  palette <- .resolve_palette(palette)
   normalise <- .validate_flag(normalise, "normalise")
   legacy_normalization <- if (normalise) "mean_step" else "total"
   if (is.null(normalization)) {
@@ -299,7 +308,7 @@ hsa_spectral_flux <- function(cube, palette = "inferno", normalise = TRUE,
       if (normalization == "wavelength_span")
         "Piecewise-linear mean absolute slope; unresolved structure and noise depend on sampling" else
         "Adjacent measured-band changes depend on sampling", sep = "; "
-    ))
+    ), width = .label_width(d))
   )
 
   .attach_provenance(
@@ -348,6 +357,7 @@ hsa_fusion <- function(cube, red = NULL, green = NULL, blue = NULL,
                        probs = c(0.02, 0.98), display_limits = c(0, 1),
                        value_label = "input value", interpolate = TRUE,
                        missing = c("propagate", "available")) {
+  call <- rlang::current_env()
   cb <- .as_cube(cube)
   by <- match.arg(by)
   stretch <- match.arg(stretch)
@@ -376,29 +386,36 @@ hsa_fusion <- function(cube, red = NULL, green = NULL, blue = NULL,
 
   to_idx <- function(v, nm) {
     if (!is.numeric(v) || !length(v) || any(!is.finite(v))) {
-      cli::cli_abort("{.arg {nm}} must be a non-empty finite numeric vector.")
+      cli::cli_abort("{.arg {nm}} must be a non-empty finite numeric vector.",
+                       call = call)
     }
     if (identical(by, "wavelength")) {
       if (!cb$has_wavelengths) {
-        cli::cli_abort("Explicit wavelength selection requires wavelength metadata.")
+        cli::cli_abort("Explicit wavelength selection requires wavelength metadata.",
+                       call = call)
       }
       if (any(v < cb$coordinates[1L] | v > cb$coordinates[nb])) {
-        cli::cli_abort("{.arg {nm}} contains targets outside the wavelength range.")
+        cli::cli_abort("{.arg {nm}} contains targets outside the wavelength range.",
+                       call = call)
       }
       idx <- vapply(v, function(w) which.min(abs(cb$coordinates - w)), integer(1))
       if (anyDuplicated(idx)) {
-        cli::cli_abort("{.arg {nm}} contains targets that resolve to the same band.")
+        cli::cli_abort("{.arg {nm}} contains targets that resolve to the same band.",
+                       call = call)
       }
       idx
     } else {
       if (any(v != floor(v))) {
-        cli::cli_abort("{.arg {nm}} must contain whole band indices.")
+        cli::cli_abort("{.arg {nm}} must contain whole band indices.",
+                       call = call)
       }
       if (any(v < 1L) || any(v > nb)) {
-        cli::cli_abort("{.arg {nm}} contains band indices outside 1:{nb}.")
+        cli::cli_abort("{.arg {nm}} contains band indices outside 1:{nb}.",
+                       call = call)
       }
       if (anyDuplicated(v)) {
-        cli::cli_abort("{.arg {nm}} band indices must be unique.")
+        cli::cli_abort("{.arg {nm}} band indices must be unique.",
+                       call = call)
       }
       as.integer(v)
     }
@@ -438,7 +455,7 @@ hsa_fusion <- function(cube, red = NULL, green = NULL, blue = NULL,
   for (nm in names(raw)) raw[[nm]]$values[!common_valid] <- NA_real_
 
   enhancement <- lapply(raw, function(channel) {
-    .stretch(channel$values, stretch, probs, display_limits)
+    .stretch(channel$values, stretch, probs, display_limits, call = call)
   })
 
   df <- .as_long(enhancement$red$values, "r")
@@ -467,8 +484,11 @@ hsa_fusion <- function(cube, red = NULL, green = NULL, blue = NULL,
       sprintf("%s bands %s", name, .compact_band_label(idx))
     }
   }
-  subtitle <- paste(describe_group("R", ri), describe_group("G", gi),
-                    describe_group("B", bi), sep = "\n")
+  subtitle <- paste(vapply(
+    c(describe_group("R", ri), describe_group("G", gi),
+      describe_group("B", bi)),
+    .wrap_caption, character(1), width = .label_width(d, scale = 0.83)
+  ), collapse = "\n")
   channel_captions <- vapply(c("red", "green", "blue"), function(nm) {
     paste0(toupper(substr(nm, 1, 1)), ": ",
            .stretch_caption(enhancement[[nm]], value_label = value_label))
@@ -479,7 +499,7 @@ hsa_fusion <- function(cube, red = NULL, green = NULL, blue = NULL,
             format(enhancement$red$display_limits[1L], digits = 4),
             format(enhancement$red$display_limits[2L], digits = 4)),
     sprintf("missing=%s", missing), sep = "; "
-  ))
+  ), width = .label_width(d))
 
   p <- .render_fusion(df, interpolate, subtitle, caption)
 
@@ -605,7 +625,9 @@ hsa_fusion <- function(cube, red = NULL, green = NULL, blue = NULL,
 #' @param bands Number of bands. Default `24`.
 #' @param seed Random seed. Default `42`.
 #'
-#' @return A list with `data` and `wavelengths`, classed as `hsi_cube`.
+#' @return A list with `data` (a `rows` by `cols` by `bands` array),
+#'   `wavelengths` (nm, from 500 in steps of 5) and `metadata`, classed as
+#'   `hsi_cube`.
 #'
 #' @examples
 #' cube <- hsa_demo_cube()

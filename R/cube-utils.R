@@ -55,6 +55,40 @@ NULL
   value_label
 }
 
+.palette_names <- c("viridis", "magma", "inferno", "plasma", "cividis", "mako",
+                    "rocket", "turbo")
+
+# Resolve a palette request to its full name before any calculation, so that
+# an invalid name fails early and provenance records the palette actually
+# drawn. Unambiguous abbreviations stay accepted, as with match.arg().
+.resolve_palette <- function(palette, arg = "palette",
+                             call = rlang::caller_env()) {
+  if (is.null(palette)) return(.palette_names[1L])
+  matched <- if (is.character(palette) && length(palette) == 1L &&
+                 !is.na(palette)) {
+    pmatch(palette, .palette_names)
+  } else {
+    NA_integer_
+  }
+  if (is.na(matched)) {
+    choices <- .palette_names
+    cli::cli_abort(c(
+      "{.arg {arg}} must be one palette name.",
+      "i" = "Available palettes: {.val {choices}}."
+    ), call = call)
+  }
+  .palette_names[matched]
+}
+
+# Characters per label line that fit beside a fixed-aspect image panel on a
+# default-size device (about 7 by 5 inches). The panel narrows with the
+# column-to-row ratio, so wide fixed line lengths ran past its edge.
+.label_width <- function(dimensions, scale = 1, minimum = 36L,
+                         maximum = 110L) {
+  aspect <- dimensions[2L] / dimensions[1L]
+  as.integer(floor(scale * min(maximum, max(minimum, 56 * aspect))))
+}
+
 # Accept an hsi_cube without requiring hyperspectR to be installed.
 .as_cube <- function(x, arg = rlang::caller_arg(x), call = rlang::caller_env()) {
   is_hsi <- inherits(x, "hsi_cube")
@@ -158,34 +192,6 @@ NULL
   )
 }
 
-# Resolve a band given either an index or a wavelength coordinate.
-.band_index <- function(cube, band = NULL, wavelength = NULL,
-                        call = rlang::caller_env()) {
-  nb <- dim(cube$data)[3L]
-  if (!is.null(wavelength)) {
-    if (!is.null(band)) {
-      cli::cli_abort("Give either {.arg band} or {.arg wavelength}, not both.",
-                     call = call)
-    }
-    if (!cube$has_wavelengths) {
-      cli::cli_abort("Wavelength selection requires wavelength metadata.", call = call)
-    }
-    if (!is.numeric(wavelength) || length(wavelength) != 1L ||
-        !is.finite(wavelength) || wavelength < cube$coordinates[1L] ||
-        wavelength > cube$coordinates[nb]) {
-      cli::cli_abort("{.arg wavelength} must be one finite value inside the wavelength range.",
-                     call = call)
-    }
-    return(which.min(abs(cube$coordinates - wavelength)))
-  }
-  if (is.null(band)) return(max(1L, round(nb / 2)))
-  if (!is.numeric(band) || length(band) != 1L || !is.finite(band) ||
-      band != floor(band) || band < 1L || band > nb) {
-    cli::cli_abort("{.arg band} must be one whole index in 1:{nb}.", call = call)
-  }
-  as.integer(band)
-}
-
 .rescale_affine <- function(x, limits) {
   width <- limits[2L] - limits[1L]
   if (is.finite(width)) return((x - limits[1L]) / width)
@@ -218,6 +224,13 @@ NULL
   result
 }
 
+# Type-7 sample quantile, the default of stats::quantile(): with
+# h = (n - 1) p + 1 and j = floor(h), Q(p) = (1 - (h - j)) x[j] + (h - j) x[j + 1],
+# that is p(k) = (k - 1) / (n - 1) ("Type 7" in ?stats::quantile).
+# Hyndman, R. J. & Fan, Y. (1996). Sample quantiles in statistical packages.
+# The American Statistician 50(4), 361-365, Definition 7.
+# https://doi.org/10.1080/00031305.1996.10473566
+#
 # Callers supply finite observations and validated probabilities. Keep the
 # standard type-7 path unless a requested bracket needs tiny-value arithmetic;
 # do not rescale a mixed tiny/ordinary population as a whole.
@@ -239,28 +252,76 @@ NULL
   result
 }
 
+# Type-7 quantiles of every row of a complete finite matrix. Each row is
+# ordered once and interpolated exactly as .quantile_type7() does for one
+# vector, so the results are identical without one quantile call per pixel.
+# Rows are processed in blocks to bound the memory of the ordering step.
+.row_quantiles_type7 <- function(values, probs, block_cells = 4e6) {
+  rows <- nrow(values)
+  n <- ncol(values)
+  result <- matrix(NA_real_, rows, length(probs))
+  if (!rows) return(result)
+  index <- 1 + (n - 1) * probs
+  lower <- floor(index)
+  upper <- ceiling(index)
+  weight <- index - lower
+  block_rows <- max(1L, as.integer(block_cells %/% n))
+  for (start in seq.int(1L, rows, by = block_rows)) {
+    block <- seq.int(start, min(rows, start + block_rows - 1L))
+    chunk <- values[block, , drop = FALSE]
+    size <- length(block)
+    ordered <- matrix(chunk[order(rep(seq_len(size), times = n), chunk)],
+                      nrow = size, byrow = TRUE)
+    for (k in seq_along(probs)) {
+      left <- ordered[, lower[k]]
+      right <- ordered[, upper[k]]
+      quantile <- left
+      between <- weight[k] > 0 & right != left
+      quantile[between] <- (1 - weight[k]) * left[between] +
+        weight[k] * right[between]
+      tiny <- abs(quantile) <= .Machine$double.xmin &
+        pmax(abs(left), abs(right)) <= .Machine$double.xmin
+      if (any(tiny)) {
+        quantile[tiny] <- .stable_interpolate(left[tiny], right[tiny],
+                                              weight[k])
+      }
+      result[block, k] <- quantile
+    }
+  }
+  result
+}
+
 # Rescale finite observations to [0, 1] using a stated contrast stretch.
 .stretch <- function(x, method = c("percentile", "range", "none"),
-                     probs = c(0.02, 0.98), display_limits = c(0, 1)) {
+                     probs = c(0.02, 0.98), display_limits = c(0, 1),
+                     call = rlang::caller_env()) {
   method <- match.arg(method)
-  probs <- .validate_probs(probs)
-  display_limits <- .validate_display_limits(display_limits)
+  probs <- .validate_probs(probs, call = call)
+  display_limits <- .validate_display_limits(display_limits, call = call)
   if (!typeof(x) %in% c("integer", "double") || is.complex(x)) {
-    cli::cli_abort("{.arg x} must be real numeric data.")
+    cli::cli_abort("The values to display must be real numeric data.",
+                   call = call)
   }
 
   valid <- is.finite(x)
   finite <- x[valid]
-  if (!length(finite)) cli::cli_abort("{.arg x} contains no finite values.")
+  if (!length(finite)) {
+    cli::cli_abort(c(
+      "The rendered quantity contains no finite values.",
+      "i" = "Every pixel is masked, nonfinite or has an incomplete spectrum."
+    ), call = call)
+  }
   out <- x
   out[!valid] <- NA_real_
   fallback <- NULL
 
   if (identical(method, "none")) {
     if (any(finite < display_limits[1L] | finite > display_limits[2L])) {
-      cli::cli_abort(
-        "Finite values must lie within {.arg display_limits} when {.arg method} is {.val none}."
-      )
+      span <- format(range(finite), digits = 4)
+      cli::cli_abort(c(
+        "Finite values must lie within {.arg display_limits} when {.arg stretch} is {.val none}.",
+        "x" = "The finite values span [{span[1L]}, {span[2L]}]."
+      ), call = call)
     }
     limits <- display_limits
     effective <- "none"
@@ -307,7 +368,9 @@ NULL
 
 .as_long <- function(m, value = "value") {
   d <- dim(m)
-  if (length(d) != 2L) cli::cli_abort("Internal image data must be a matrix.")
+  if (length(d) != 2L) {
+    cli::cli_abort("Internal image data must be a matrix.", .internal = TRUE)
+  }
   out <- data.frame(
     x = rep(seq_len(d[2L]), each = d[1L]),
     y = rep(seq_len(d[1L]), times = d[2L]),

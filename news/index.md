@@ -13,6 +13,57 @@
 - Includes all changes of the 0.2.0 and 0.2.0.9001 development
   candidates listed below.
 
+### Bug fixes
+
+- Subtitles and captions of the image renderers
+  ([`hsa_mandala()`](https://cttir.github.io/hyperspectaculR/reference/hsa_mandala.md),
+  [`hsa_spectral_flux()`](https://cttir.github.io/hyperspectaculR/reference/hsa_spectral_flux.md),
+  [`hsa_fusion()`](https://cttir.github.io/hyperspectaculR/reference/hsa_fusion.md),
+  [`hsa_spectral_gradient()`](https://cttir.github.io/hyperspectaculR/reference/hsa_spectral_gradient.md))
+  are now wrapped to the width of the image panel, which depends on the
+  column-to-row ratio of the cube. The former fixed line lengths ran
+  past the panel on a default-size device, so the start of a caption was
+  drawn outside the plot.
+- Palette names are checked before any calculation, and an invalid
+  `palette` now raises an error that names the argument and lists the
+  available palettes. An abbreviated name such as `"mag"`, or `NULL`,
+  was drawn correctly but recorded as given;
+  [`hsa_provenance()`](https://cttir.github.io/hyperspectaculR/reference/hsa_provenance.md)
+  now records the full name of the palette that was drawn.
+- Validation errors raised inside helpers now name the function that was
+  called and its arguments (`stretch`, `display_limits`) instead of
+  internal functions and variables. An out-of-domain `stretch = "none"`
+  request also reports the finite range of the values.
+- [`hsa_spectral_density()`](https://cttir.github.io/hyperspectaculR/reference/hsa_spectral_density.md)
+  draws its value-axis title vertically and keeps both axis titles clear
+  of the tick labels;
+  [`hsa_spectral_quartiles()`](https://cttir.github.io/hyperspectaculR/reference/hsa_spectral_quartiles.md)
+  keeps the panel labels clear of the panels.
+
+### Performance
+
+- [`hsa_spectral_quartiles()`](https://cttir.github.io/hyperspectaculR/reference/hsa_spectral_quartiles.md)
+  computes the quartiles of all pixels at once. Results are identical; a
+  480 by 640 by 100 cube takes about 3 s instead of 23 s.
+
+### Documentation
+
+- The
+  [`hsa_theme()`](https://cttir.github.io/hyperspectaculR/reference/hsa_theme.md)
+  example shows a visible raster, and the help page explains how to
+  match the device background to the theme outside
+  [`ggplot2::ggsave()`](https://ggplot2.tidyverse.org/reference/ggsave.html).
+  The vignette does so.
+- Example figures on the reference pages of the site keep their colours
+  in dark mode; the style rule that protects figures did not match them,
+  so they were shown colour-inverted.
+- The vignette introduction no longer names a superseded development
+  version.
+
+### Internal
+
+- Removed an unused internal band-selection helper.
+
 ## hyperspectaculR 0.2.0.9001 (development candidate, not released)
 
 - Copy and validate publication evidence in pkgdown’s actual output

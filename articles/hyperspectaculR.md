@@ -3,12 +3,11 @@
 ![hyperspectaculR logo](figures/logo.svg)![hyperspectaculR
 logo](figures/logo-dark.svg)
 
-The 0.2.0.9001 development candidate creates compositions and
-descriptive summaries from an `hsi_cube` or real numeric
-`(rows, cols, bands)` array. Reading recordings and calibration happen
-upstream. The default label is **input value**: a range such as 0–1 does
-not establish calibrated reflectance. These plots do not support
-physiological inference.
+hyperspectaculR creates compositions and descriptive summaries from an
+`hsi_cube` or real numeric `(rows, cols, bands)` array. Reading
+recordings and calibration happen upstream. The default label is **input
+value**: a range such as 0–1 does not establish calibrated reflectance.
+These plots do not support physiological inference.
 
 ## Inputs and missing observations
 

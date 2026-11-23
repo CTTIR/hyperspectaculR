@@ -101,7 +101,9 @@ spectrum more finely; fewer give bolder banding.</p></dd>
 
 
 <dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
-<dd><p>Palette name passed to <code><a href="hsa_palette.html">hsa_palette()</a></code>.</p></dd>
+<dd><p>Palette name passed to <code><a href="hsa_palette.html">hsa_palette()</a></code>. An unambiguous
+abbreviation is accepted; the full name is checked before any calculation
+and recorded in the provenance.</p></dd>
 
 
 <dt id="arg-stretch">stretch<a class="anchor" aria-label="anchor" href="#arg-stretch"></a></dt>
@@ -146,6 +148,10 @@ default radius-to-band-index mapping is linear. Wavelength sampling uses
 equally spaced physical targets and nearest measured bands, with ties toward
 shorter wavelengths. Repeated selections and empty rings retain the geometry
 and are disclosed in the caption and provenance.</p>
+<p>Subtitle and caption lines are wrapped to the width of the image
+panel on a default-size device (about 7 by 5 inches), which depends on the
+column-to-row ratio of the cube. For a much smaller or narrower output,
+rewrap the labels as shown in <code><a href="../articles/hyperspectaculR.html">vignette("hyperspectaculR")</a></code>.</p>
     </div>
 
     <div class="section level2">
