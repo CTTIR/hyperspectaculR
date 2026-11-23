@@ -45,6 +45,9 @@
   dark mode; the style rule that protects figures did not match them, so they
   were shown colour-inverted.
 * The vignette introduction no longer names a superseded development version.
+
+## Internal
+
 * Removed an unused internal band-selection helper.
 
 # hyperspectaculR 0.2.0.9001 (development candidate, not released)
