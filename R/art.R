@@ -57,7 +57,7 @@
 #' This uses the spectral dimension for a spatial composition. A single band
 #' or repeated ring selections can produce a degenerate single-band result. The
 #' default radius-to-band-index mapping is linear. Wavelength sampling uses
-#' equally spaced physical targets and nearest measured bands, with ties toward
+#' equally spaced physical targets and nearest measured bands, with ties towards
 #' shorter wavelengths. Repeated selections and empty rings retain the geometry
 #' and are disclosed in the caption and provenance.
 #'
@@ -240,7 +240,7 @@ hsa_mandala <- function(cube, centre = NULL, n_rings = 36L,
 #'   V = sum(abs(diff(x))) and L is the endpoint wavelength span. Contradictory
 #'   explicit `normalise` and `normalization` settings are rejected.
 #'
-#' @details Wavelength-span normalization requires at least two physical
+#' @details Wavelength-span normalisation requires at least two physical
 #'   wavelengths in nm and a finite positive representable span. It measures
 #'   mean absolute slope of the piecewise-linear spectrum in input-value units
 #'   per nm. Gaps bridge unobserved structure; this does not correct sampling

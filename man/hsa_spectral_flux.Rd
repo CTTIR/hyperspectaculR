@@ -66,7 +66,7 @@ Unlike a single-band image this cannot be produced from any one wavelength,
 and unlike a variance map it is sensitive to the ordering of the bands, so
 it responds to spectral shape rather than spread alone.
 
-Wavelength-span normalization requires at least two physical
+Wavelength-span normalisation requires at least two physical
 wavelengths in nm and a finite positive representable span. It measures
 mean absolute slope of the piecewise-linear spectrum in input-value units
 per nm. Gaps bridge unobserved structure; this does not correct sampling

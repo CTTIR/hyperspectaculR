@@ -8,10 +8,12 @@ Nonfinite
 Nonrepresentable
 ORCID
 Pandoc
+PyTorch
 README
 RMS
 RStudio
 annuli
+build's
 centre
 colour
 colourblind
@@ -39,6 +41,8 @@ representable
 reproducibly
 rewrap
 runnable
+st
+standalone
 th
 vLLM
 viridisLite

@@ -68,7 +68,7 @@ the spectral distribution. A single ring selects the first band.
 This uses the spectral dimension for a spatial composition. A single band
 or repeated ring selections can produce a degenerate single-band result. The
 default radius-to-band-index mapping is linear. Wavelength sampling uses
-equally spaced physical targets and nearest measured bands, with ties toward
+equally spaced physical targets and nearest measured bands, with ties towards
 shorter wavelengths. Repeated selections and empty rings retain the geometry
 and are disclosed in the caption and provenance.
 
