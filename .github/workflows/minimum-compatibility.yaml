@@ -30,7 +30,7 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends git libuv1-dev cmake libxml2-dev libpng-dev fonts-liberation
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install package and test dependencies
         shell: Rscript {0}
