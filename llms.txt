@@ -1,6 +1,7 @@
 # hyperspectaculR ![hyperspectaculR logo](reference/figures/logo-with-name.png)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21889974.svg)](https://doi.org/10.5281/zenodo.21889974)
+Zenodo DOI reserved for the release: `10.5281/zenodo.21889974` (not yet
+published).
 
 [![R-CMD-check](https://github.com/CTTIR/hyperspectaculR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/CTTIR/hyperspectaculR/actions/workflows/R-CMD-check.yaml)
 [![pkgdown](https://github.com/CTTIR/hyperspectaculR/actions/workflows/pkgdown.yaml/badge.svg)](https://cttir.github.io/hyperspectaculR/)
